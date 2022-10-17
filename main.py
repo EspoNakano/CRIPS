@@ -7,8 +7,17 @@
 # -------------
 # функции average, min, max, median, stdev, log2 нет смысла переписывать
 from Bio import SeqIO
+from tkinter import *
+from tkinter.filedialog import askopenfilename
 import re
 import Bio.Data.CodonTable
+
+
+def makeHTML(gff, casFile, resDir, refSeq, seqDesc, seqLen, globalAT, nbrcris, OneSpacerCris_nbr):
+    Tk().withdraw()
+    folder_selected = askopenfilename()
+    print(folder_selected)
+    pass
 
 
 def foundInCRISPRdb(seq, start, end):
