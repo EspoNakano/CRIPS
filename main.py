@@ -10,7 +10,14 @@ from Bio import SeqIO
 from tkinter import *
 from tkinter.filedialog import askopenfilename
 import re
+import configparser
 import Bio.Data.CodonTable
+
+
+config = configparser.ConfigParser()
+config.read("settings.ini")
+print(config["Base Variable"]["so"].split()[0])
+#print(float(config["Base Values"]["Sp2"]))  # or int
 
 
 def makeHTML(gff, casFile, resDir, refSeq, seqDesc, seqLen, globalAT, nbrcris, OneSpacerCris_nbr):
