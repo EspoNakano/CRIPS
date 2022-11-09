@@ -4,20 +4,15 @@
 # -------------
 # my ($value) = @_          || указание изначальной переменной в функции
 # s/A/O/g -> mAmbA => mOmbO __ /g (global find) /s (oneline value)
-# -------------
-# функции average, min, max, median, stdev, log2 нет смысла переписывать
+
+# импорт библиотек
 from Bio import SeqIO
 from tkinter import *
+from datetime import datetime
 from tkinter.filedialog import askopenfilename
 import re
-import configparser
+import configparser  # для чтения INI файла
 import Bio.Data.CodonTable
-
-
-config = configparser.ConfigParser()
-config.read("settings.ini")
-print(config["Base Variable"]["so"].split()[0])
-#print(float(config["Base Values"]["Sp2"]))  # or int
 
 
 def makeHTML(gff, casFile, resDir, refSeq, seqDesc, seqLen, globalAT, nbrcris, OneSpacerCris_nbr):
@@ -73,5 +68,24 @@ def compare_clusters(el2, el1):  # функция прмменяется тол�
         return False
 
 
-def printversion():
-    pass  # надобность ?
+# подключение базовых настроек в INI файле
+# config["Base Variable"]["SpSim"]
+config = configparser.ConfigParser()
+config.read("settings.ini")
+
+# проверка параметров запуска | to_do
+
+print(f'Welcome to {config["System Variable"]["casfinder"]}. Version {config["System Variable"]["version"]}.')
+
+# проверка наличия входного файла | to_do
+
+# запуск проверки наличия программ | to_do
+
+# коррекция DRs
+DRtrunMism = 100 / float(config["Base Variable"]["DRtrunMism"])
+DRerrors = float(config["Base Variable"]["DRerrors"]) / 100
+
+start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+print(start_time)
+
+# запуск работы с BIO | to_do
