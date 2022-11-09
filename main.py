@@ -68,24 +68,42 @@ def compare_clusters(el2, el1):  # функция прмменяется тол�
         return False
 
 
+def active():
+    # коррекция DRs
+    DRtrunMism = 100 / float(config["Base Variable"]["DRtrunMism"])
+    DRerrors = float(config["Base Variable"]["DRerrors"]) / 100
+
+    # отметка времени при запуске процесса
+    start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f'Launch Time: {start_time}')
+
+    # запуск работы с BIO | to_do
+    # record = SeqIO.read(userfile, "fasta")
+    inputfileCount = 0
+
+    basename = ...  # это выходной файл ?
+    outdir = ...
+
+    ResultDir = ''
+
+
 # подключение базовых настроек в INI файле
 # config["Base Variable"]["SpSim"]
 config = configparser.ConfigParser()
 config.read("settings.ini")
 
-# проверка параметров запуска | to_do
-
-print(f'Welcome to {config["System Variable"]["casfinder"]}. Version {config["System Variable"]["version"]}.')
+print(f'Welcome to {config["System Variable"]["casfinder"]}.\n')
 
 # проверка наличия входного файла | to_do
 
 # запуск проверки наличия программ | to_do
 
-# коррекция DRs
-DRtrunMism = 100 / float(config["Base Variable"]["DRtrunMism"])
-DRerrors = float(config["Base Variable"]["DRerrors"]) / 100
+# оповещение о вызове help
+print('Argument -help or -h for call help')
+print('For launch CasFinder use: ***\n')
 
-start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-print(start_time)
+# проверка параметров запуска | to_do
+userfile = ...
 
-# запуск работы с BIO | to_do
+# основная ветка действий
+active()
