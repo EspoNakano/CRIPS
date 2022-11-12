@@ -34,12 +34,8 @@ def repeatIDandNb(string):
 
 
 def atpercent(string):  # calculate AT%
-    if len(string) == 0:
-        return 0
-    else:
-        res = sum([1 if n in 'AT' else 0 for _ in string])
-        return res / len(string) * 100
-        # return "{:.2%}".format(res / len(string))
+    return 0 if len(string) == 0 else sum([1 if n in 'AT' else 0 for _ in string]) / len(string) * 100
+    # return "{:.2%}".format(res / len(string))
 
 
 def sequenceAlignmentMuscle(file):
@@ -62,10 +58,7 @@ def trans_struct_hach(position, structspacers):  # Использовать ctyp
 
 
 def compare_clusters(el2, el1):  # функция прмменяется только 1 раз, так что скорее всего можно встроить напрямую...
-    if (el2 >= el1 - 1500) and (el2 <= el1 + 1500):
-        return True
-    else:
-        return False
+    return True if (el2 >= el1 - 1500) and (el2 <= el1 + 1500) else False
 
 
 def active():
