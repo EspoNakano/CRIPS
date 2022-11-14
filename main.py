@@ -89,11 +89,14 @@ print(f'Welcome to {config["System Variable"]["casfinder"]}.\n')
 
 # проверка наличия входного файла | to_do
 
+
 # запуск проверки наличия программ | to_do
 
 # оповещение о вызове help
-print('Argument -help or -h for call help')
-print('For launch CasFinder use: ***\n')
+function = config["Launch Function"]["function"]
+print(function)
+list_f = function.split('-')
+print(list_f)
 
 # проверка параметров запуска | to_do
 userfile = ...
