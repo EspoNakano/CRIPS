@@ -7,19 +7,16 @@
 
 # импорт библиотек
 from Bio import SeqIO
-from tkinter import *
 from datetime import datetime
-from tkinter.filedialog import askopenfilename
 import re
 import configparser  # для чтения INI файла
 import Bio.Data.CodonTable
 
+from icecream import ic  # библиотека для отладки
+
 
 def makeHTML(gff, casFile, resDir, refSeq, seqDesc, seqLen, globalAT, nbrcris, OneSpacerCris_nbr):
-    Tk().withdraw()
-    folder_selected = askopenfilename()
-    print(folder_selected)
-    pass
+    pass  # заглушка ввиду открытия файла в функции
 
 
 def foundInCRISPRdb(seq, start, end):
@@ -82,24 +79,25 @@ def active():
 
 # подключение базовых настроек в INI файле
 # config["Base Variable"]["SpSim"]
-config = configparser.ConfigParser()
+config = configparser.RawConfigParser()
+config.optionxform = str
 config.read("settings.ini")
+
+parametrs = {}
+[parametrs.update({item[0]: item[1]}) for item in config['Base Variable'].items()]
+ic(parametrs)
 
 print(f'Welcome to {config["System Variable"]["casfinder"]}.\n')
 
 # проверка наличия входного файла | to_do
-
-
 # запуск проверки наличия программ | to_do
-
 # оповещение о вызове help
-function = config["Launch Function"]["function"]
-print(function)
-list_f = function.split('-')
-print(list_f)
-
 # проверка параметров запуска | to_do
-userfile = ...
+
+function = config["Launch Function"]["Function"]
+ic(function)
+function_list = function.split(' ')
+ic(function_list)
 
 # основная ветка действий
 active()
