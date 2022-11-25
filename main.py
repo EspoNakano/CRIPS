@@ -59,6 +59,7 @@ def compare_clusters(el2, el1):  # функция прмменяется тол�
 
 
 def active():
+    print(f'Welcome to {config["System Variable"]["casfinder"]}.\n')
     # коррекция DRs
     DRtrunMism = 100 / float(config["Base Variable"]["DRtrunMism"])
     DRerrors = float(config["Base Variable"]["DRerrors"]) / 100
@@ -70,9 +71,6 @@ def active():
     # запуск работы с BIO | to_do
     # record = SeqIO.read(userfile, "fasta")
     inputfileCount = 0
-
-    basename = ...  # это выходной файл ?
-    outdir = ...
 
     ResultDir = ''
 
@@ -87,17 +85,16 @@ parametrs = {}
 [parametrs.update({item[0]: item[1]}) for item in config['Base Variable'].items()]
 ic(parametrs)
 
-print(f'Welcome to {config["System Variable"]["casfinder"]}.\n')
-
 # проверка наличия входного файла | to_do
 # запуск проверки наличия программ | to_do
-# оповещение о вызове help
 # проверка параметров запуска | to_do
 
-function = config["Launch Function"]["Function"]
+function = config["Launch Function"]["Function"].split(' ')
 ic(function)
-function_list = function.split(' ')
-ic(function_list)
+
+basename = function[function.index("-in") + 1]
+outdir = function[function.index("-out") + 1]
+ic(basename, outdir)
 
 # основная ветка действий
 active()
