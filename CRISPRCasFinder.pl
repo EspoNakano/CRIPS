@@ -17,11 +17,7 @@ use Bio::AlignIO;
 use Bio::SeqIO;
 use Bio::DB::Fasta; #to extract sequence from fasta file
 
-# TODO add URLescape module in case the GFF attributes get messy
-my $version = "4.2.20";
-
 # set parameters for the Vmatch program
-## Parameters
 my $SpSim = 60; # maximal allowed percentage of similarity between Spacers (default value=60)
 
 my $Sp2 = 2.5; # maximal Spacers size in function of DR size (default value=2.5)
@@ -124,7 +120,6 @@ my $percentageMismatchesHalfDR = 4; # option allowing to set the percentage of a
 
 my $classifySmall = 0; # option allowing to change evidence level status of small arrays (evidence-level 1) having the same consensus repeat as an evidence-level 4 array (default value=0)
 
-my $print_version = 0;  # Print version
 my $print_help = 0;     # Print help
 
 ## Manage arguments
@@ -136,16 +131,15 @@ my $print_help = 0;     # Print help
 GetOptions (
     # General options
     "help|h" => \$print_help,
-    "version|v" => \$print_version,
     # Input/Output and -so
     "in|i=s" => \$userfile,
-    "outdir|out=s" => \$outputDirName,
-    "keepAll|keep" => \$keep,
-    "LOG|log" => \$logOption,
-    "HTML|html" => \$html,
-    "copyCSS=s" => \$cssFile,
-    "soFile|so=s" => \$so,
-    "quiet|q" => \$quiet,
+    "outdir|out=s" => \$outputDirName,  # INI
+    "keepAll|keep" => \$keep,  # INI
+    "LOG|log" => \$logOption,  # INI
+    "HTML|html" => \$html,  # INI
+    "copyCSS=s" => \$cssFile,  # INI
+    "soFile|so=s" => \$so,  # INI
+    "quiet|q" => \$quiet,  # INI
     "faster|fast" => sub {
 	# Fast mode
 	$fast = 1;
@@ -153,53 +147,53 @@ GetOptions (
 	$cpuProkka = 0;
 	$cpuMacSyFinder = 0;
     },
-    "minSeqSize|mSS=i" => \$seqMinSize,
+    "minSeqSize|mSS=i" => \$seqMinSize,  # INI
     # Options for detection of CRISPR arrays
-    "mismDRs|md=f" => \$DRerrors,
-    "truncDR|t=f" => \$DRtrunMism,
-    "minDR|mr=i" => \$M1,
-    "maxDR|xr=i" => \$M2,
-    "minSP|ms=i" => \$S1,
-    "maxSP|xs=i" => \$S2,
+    "mismDRs|md=f" => \$DRerrors,  # INI
+    "truncDR|t=f" => \$DRtrunMism,  # INI
+    "minDR|mr=i" => \$M1,  # INI
+    "maxDR|xr=i" => \$M2,  # INI
+    "minSP|ms=i" => \$S1,  # INI
+    "maxSP|xs=i" => \$S2,  # INI
     "noMism|n" => sub { $mismOne=0; },
-    "percSPmin|pm=f" => \$Sp1,
-    "percSPmax|px=f" => \$Sp2,
-    "spSim|s=f" => \$SpSim,
-    "DBcrispr|dbc=s" => \$crisprdb,
-    "repeats|rpts=s" => \$repeats,
-    "DIRrepeat|drpt=s" => \$dirRepeat,
-    "flank|fl=i" => \$flankingRegion,
-    "levelMin|lMin=i" => \$levelMin,
-    "classifySmallArrays|classifySmall|cSA" => \$classifySmall,
+    "percSPmin|pm=f" => \$Sp1,  # INI
+    "percSPmax|px=f" => \$Sp2,  # INI
+    "spSim|s=f" => \$SpSim,  # INI
+    "DBcrispr|dbc=s" => \$crisprdb,  # INI
+    "repeats|rpts=s" => \$repeats,  # INI
+    "DIRrepeat|drpt=s" => \$dirRepeat,  # INI
+    "flank|fl=i" => \$flankingRegion,  # INI
+    "levelMin|lMin=i" => \$levelMin,  # INI
+    "classifySmallArrays|classifySmall|cSA" => \$classifySmall,  # INI
     "forceDetection|force" => sub {
 	$force = 1;
 	$M1 = $fosteredDRLength;
     },
-    "fosterDRLength|fDRL=i" => \$fosteredDRLength,
-    "fosterDRBegin|fDRB=s" => \$fosteredDRBegin,
-    "fosterDREnd|fDRE=s" => \$fosteredDREnd,
-    "MatchingRepeats|Mrpts=s" => \$repeatsQuery,
-    "minNbSpacers|mNS=i" => \$minNbSpacers,
-    "betterDetectTrunc|bDT" => \$betterDetectTruncatedDR,
-    "PercMismTrunc|PMT=f" => \$percentageMismatchesHalfDR,
+    "fosterDRLength|fDRL=i" => \$fosteredDRLength,  # INI
+    "fosterDRBegin|fDRB=s" => \$fosteredDRBegin,  # INI
+    "fosterDREnd|fDRE=s" => \$fosteredDREnd,  # INI
+    "MatchingRepeats|Mrpts=s" => \$repeatsQuery,  # INI
+    "minNbSpacers|mNS=i" => \$minNbSpacers,  # INI
+    "betterDetectTrunc|bDT" => \$betterDetectTruncatedDR,  # INI
+    "PercMismTrunc|PMT=f" => \$percentageMismatchesHalfDR,  # INI
     # Options for detection of Cas clusters
-    "cas|cs" => \$launchCasFinder,
-    "ccvRep|ccvr" => \$writeFullReport,
-    "vicinity|vi=i" => \$vicinity,
-    "CASFinder|cf|CasFinder=s" => \$casfinder,
-    "cpuMacSyFinder|cpuM=i" => \$cpuMacSyFinder,
-    "rcfowce" => \$rcfowce,
-    "definition|def=s" => \$definition, # Values: "SubTyping", "Typing", "General"
-    "gffAnnot|gff=s" => \$userGFF,
-    "proteome|faa=s" => \$userFAA, # Need -cas and -gff
-    "cluster|ccc=i" => \$clusteringThreshold, # Need -cas
-    "getSummaryCasfinder|gscf" => \$gscf,
-    "geneticCode|gcode=i" => \$genCode,
-    "metagenome|meta" => \$metagenome,
+    "cas|cs" => \$launchCasFinder,  # INI
+    "ccvRep|ccvr" => \$writeFullReport,  # INI
+    "vicinity|vi=i" => \$vicinity,  # INI
+    "CASFinder|cf|CasFinder=s" => \$casfinder,  # INI (не нужна)
+    "cpuMacSyFinder|cpuM=i" => \$cpuMacSyFinder,  # INI
+    "rcfowce" => \$rcfowce,  # INI
+    "definition|def=s" => \$definition, # Values: "SubTyping", "Typing", "General"  # INI
+    "gffAnnot|gff=s" => \$userGFF,  # INI
+    "proteome|faa=s" => \$userFAA, # Need -cas and -gff  # INI
+    "cluster|ccc=i" => \$clusteringThreshold, # Need -cas  # INI
+    "getSummaryCasfinder|gscf" => \$gscf,  # INI
+    "geneticCode|gcode=i" => \$genCode,  # INI
+    "metagenome|meta" => \$metagenome,  # INI
     # Options to use Prokka
-    "useProkka|prokka" => sub { $useProkka = 1; $useProdigal = 0; },
-    "cpuProkka|cpuP=i" => \$cpuProkka,
-    "ArchaCas|ac" => sub { $launchCasFinder=1; $kingdom = "Archaea"; },
+    "useProkka|prokka" => sub { $useProkka = 1; $useProdigal = 0; },  # INI
+    "cpuProkka|cpuP=i" => \$cpuProkka,  # INI
+    "ArchaCas|ac" => sub { $launchCasFinder=1; $kingdom = "Archaea"; },  # INI
 ) or do {
     print STDERR "Error in command line arguments\n";
     printhelpbasic($0);
@@ -211,23 +205,6 @@ my $n_rem_arguments = @ARGV;
 if ($n_rem_arguments) {
     $userfile = $ARGV[0];
 }
-
-# Print help and exit
-if ($print_help)
-{
-    printhelpall($0);
-    exit EX_OK;
-}
-
-# Print version and exit
-if ($print_version)
-{
-    printversion($0);
-    exit EX_OK;
-}
-
-# Basic checks of CLI arguments
-# Output dir is created later if not given
 
 # Check that input file was given and exists
 if (!$userfile) {
@@ -351,7 +328,6 @@ struct Rep => {
 my $htmlFile = "index.html"; # web page allowing a simple visualization of CRISPRs and Cas genes ($ResultDir/ removed)
 if($html){
   my @status = stat($userfile);
-  #open (HTML, ">$htmlFile") or die "open : $!";
   open(HTML,">",$htmlFile) or die("Could not open the file $htmlFile because $!\n");
   
   print HTML "<!DOCTYPE html>\n";
@@ -383,11 +359,6 @@ if($logOption){
 	open (LOGSEQ, ">$logSeq") or die "open : $!";
 	print LOGSEQ "Sequence ID\tName\tSize (bp)\tAT%\tNb_CRISPRs\tTotal Time (s)\tCRISPR Time (s)\tCas Time (s)\tFile size (bytes)\n";
 }
-
-#my $jsonSeq = "sequences.json"; # JSON file to get information on sequence name and sequence length (bp)
-#open (JSONSEQ, ">$jsonSeq") or die "open : $!";
-#print JSONSEQ "[\n";
-#my $jsonLineSeq = "";
 
 ## JSON file "result.json"
 my $jsonResult = "result.json"; # JSON result to get all info concerning CRISPR-Cas and sequences JSON files
@@ -431,7 +402,6 @@ if($clusteringThreshold and $launchCasFinder){
   open (RESULTCCC, ">$clusterResultsHead") or die "open : $!"; 
   print RESULTCCC $headerCCC;
   close (RESULTCCC);
- 
 }
 
 #my Header for smallArraysReclassification.xls
@@ -442,7 +412,6 @@ if ($classifySmall){
   close (SMALL);
 }
 
-#sequence version
 my $sequenceVersion = 0;
 
 while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
@@ -466,11 +435,7 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
   if(!$metagenome and ($seqLength < 100000) ){
   	$metagenome=1;
   }
-  #else{
-  #	$metagenome=$actualMetaOptionValue;
-  #}
   
-
   #NV condition for mss option
   if ($seqLength >= $seqMinSize){
   	my $globalSeq = $seq->seq; # whole sequence to calculate global AT% # DC modif to perform better
@@ -493,9 +458,6 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
     		}
 		
   	}
-	# Add sequence number to variable $seqID1
-	#$seqID1 = $seqID1."_".$inputfileCount;
-  
   	# DC - 05/2017 - change value of $inputfile
   	$inputfile = $seqID1.".fna";
   
@@ -522,9 +484,7 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
   
   	# Modification DC - 05/05/2017
   	my @vmatchoptions = ""; #qw(-l 23 25 60 -e 1 -s leftseq -evalue 1 -absolute -nodist -noevalue -noscore -noidentity -sort ia -best 1000000 -selfun ./sel392v2.so 55); #DC
-  	#my @vmatchoptions = qw(-l 23 25 60 -e 1 -s leftseq -evalue 1 -absolute -nodist -noevalue -noscore -noidentity -sort ia -best 1000000 -selfun sel392v2.so 55);
-  
-  	#my $currentRepositoryForSo = getcwd(); #get current repository to use sel392v2.so
+
   	my ($vmatch_hour,$vmatch_min,$vmatch_sec) = Now();
   	# DC - set Vmatch options in function of parameters   ### replace -sort ia by -sort ida
   	#print " $repeatsQuery exists ?\n";
@@ -566,9 +526,7 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
   		print LOG "\n[$vmatch_hour:$vmatch_min:$vmatch_sec] vmatch2 @vmatchoptions\n"; # print in Logfile DC replaced vmatch by vmatch2
   	}
   	#Modification DC - 05/05/2017
-  	#makesystemcall("./vmatch " . join(' ',@vmatchoptions)); #DC
   	makesystemcall("vmatch2 " . join(' ',@vmatchoptions)); #LK - DC replaced vmatch by vmatch2
-  	#makesystemcall("cp vmatch_result.txt CHECKvmatch_result.txt");
   
   	my @rep = trans_data("vmatch_result.txt");
  
@@ -579,10 +537,6 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
      
 
      		create_recap($RefSeq, $nbrcris, $OneSpacerCris_nbr,$ResultDir);
-     		#$totalNumberOfCrisprs+=$OneSpacerCris_nbr; #LK
-     		# DC
-    		#$totalNumberOfCrisprs = $nbrcris;
-     
   	}
   	else{ create_recap($RefSeq, 0, 0,$ResultDir); }
 
@@ -590,7 +544,6 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
   	my $actual_pathHome = getcwd();
   	if($logOption){
 		print LOG "Actual path in Home is: $actual_pathHome\n";
-		#print "Actual path in Home is: $actual_pathHome\n";
   	}  
 
   	chdir ".."; #LK  #removed by DC
@@ -606,7 +559,6 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
   	unlink '../DR';
   	unlink <*_CRISPRs> ;
   	chdir "..";
-  	#unlink '*.index';
 	
 	makesystemcall("rm -f $inputfile.index");
 
@@ -616,7 +568,6 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
   	my ($gffFilename,@idDir)=makeGff($ResultDir,$inputfile,$seqDesc,$nbrcris,$OneSpacerCris_nbr);
 
   	# DC - 05/2017 - Make Json file thanks to GFF
-  	#print "$gffFilename\n"; # DC
   	my $jsonFile = makeJson($gffFilename,$ResultDir,$RefSeq);
  
 
@@ -703,14 +654,6 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
     		makesystemcall("mv $directoryProperties $newProperties"); # rename properties for each sequence
   	}
 
-  	#create a directory Properties and move all sequenceProperties directories in one
-  	#my $directoryPropertiesFinal = $ResultDir."/CRISPRFinderProperties";  # Directory for Properties
-  	#mkdir $directoryPropertiesFinal unless -d $directoryPropertiesFinal;
-  	#makesystemcall("mv $newProperties $directoryPropertiesFinal");
-
-  	# End Move properties, DRs and Spacers
-  
-
   	# DC - 06/2017 - write sequence information
   	my $end_run = time();
   	my $runtime = $end_run - $start_run;
@@ -778,7 +721,6 @@ if ($launchCasFinder){
 	}
 }
 
-#OrientationCount
 if($dirRepeat){
     my $orientationCountFile = countOrientation($ResultDir,$allCrisprs);
     if($quiet){}
@@ -924,7 +866,6 @@ if($html){
   #`mv $ResultDir/$outdir $ResultDir/$outdir-$inputfileCount`; #LK - removed by DC
 
   ## DC - $outdir will be moved to $ResultDir after
-  #rmdir "$outdir-$inputfileCount"; # Only if empty
   `mv $ResultDir $ResultDirFinal`;#rmdir $outdir;
 
 # Remove '.index' files
@@ -935,7 +876,6 @@ if($quiet){
 	makesystemcall("rm -f macsyfinderOutput");
 }
 
-# // LK
 # DC - End of main script
 
 #TODO make a GBROWSE file too # Maybe in a next future.
@@ -943,7 +883,6 @@ if($quiet){
 
 #------------------------------------------------------------------------------
 ################ /CRISPRCasFinder functions
-
 #------------------------------------------------------------------------------
 # DC - 07/2017 - makeHTML (creates HTML file from GFF file and Cas report)
 sub makeHtml
@@ -996,9 +935,6 @@ sub makeHtml
   print HTML "<br/><font COLOR= \#000099> Length (bp): </font>", $seqLength,"<br/>\n";
   print HTML "<br/><font COLOR= \#000099> AT%: </font>", $globalAT,"<br/>\n";
   print HTML "<br/><font COLOR= \#000099> Number of CRISPRs candidates: </font>", $nbrcris,"<br/>\n";
-  #print HTML "<br/><font COLOR= \#000099> - Number of Confirmed CRISPRs: </font>", $nbConfirmed,"<br/>\n";
-  #print HTML "<br/><font COLOR= \#000099> - Number of Hypothetical CRISPRs: </font>", $OneSpacerCris_nbr,"<br/><br/><br/>\n";
-
   print HTML "<center><table class = 'sub' width = '80%'><tr><th>CRISPRs</th></tr></table></center><br/><br/>\n";
 
   my $leftFlank = "";
@@ -1079,8 +1015,6 @@ sub makeHtml
 
 		##add Mean Spacers
 		$meanSpacers = &average(\@tabSpacerLength);
-		#$medianSpacers = median(@tabSpacerLength);
-		##add ratio DR/Spacer
 		$ratioDRspacer = $DRlength / $meanSpacers;
 
 	  }
@@ -1097,11 +1031,6 @@ sub makeHtml
 	  if( ($entropyDRs < 70) and ($nbSpacers > 3) ){ $eL=2;}
 	  if( $nbSpacers <= 3 ){ $eL=1;}
 
-	  #if( ($entropyDRs >= 70) and ($conservationSpacers <= 8) and ($nbSpacers > 3) and ($ratioDRspacer>=0.8) and ($ratioDRspacer<=1.2) ){ $eL=4;}
-      	  #if( ($entropyDRs >= 70) and ($nbSpacers > 3) and (($conservationSpacers > 8) or ($ratioDRspacer<0.8) or ($ratioDRspacer>1.2) ) ){ $eL=3;}
-      	  #if( ($entropyDRs < 70) and ($nbSpacers > 3) ){ $eL=2;}
-      	  #if( $nbSpacers <= 3 ){ $eL=1;}
-
 	  ## Repeat ID + CRISPRDirection
 	  my @tabR = repeatIDandNb($DRconsensus);
       	  my $crisprDirection = repeatDirection($tabR[0]);
@@ -1114,7 +1043,6 @@ sub makeHtml
 	  else{
 		$crisprDirection = "ND";
 	  }
-
 
 	  print HTML "<h5>Candidate number $idNumber</h5>\n";
 	  print HTML "<div class = box> \n";
@@ -1283,19 +1211,16 @@ sub casFinder
 	$casdb = $casfinder."/DEF-Class-2.0.3/";  # DEF-General-2.0 replaced by DEF-Class-2.0.2 then replaced by DEF-Class-2.0.3
 	$addToMacSy .= "--min-genes-required General-Class1 1 "; # General-1CAS replaced by General-Class1
 	$addToMacSy .= "--min-genes-required General-Class2 1 "; # General-3CAS replaced by General-Class2
-	#$default = 1;
   }
   elsif( ($definition eq "Typing") or ($definition eq "typing") or ($definition eq "T") or ($definition eq "t") ){
   	$casdb = $casfinder."/DEF-Typing-2.0.3/"; # DEF-Typing-2.0 replaced by DEF-Typing-2.0.2 then replaced by DEF-Typing-2.0.3
 	#$addToMacSy .= "--min-genes-required CAS 1 --min-genes-required CAS-TypeI 1 --min-genes-required CAS-TypeII 1 --min-genes-required CAS-TypeIII 1 --min-genes-required CAS-TypeIV 1 --min-genes-required CAS-TypeV 1 ";
-	#$addToMacSy .= "--min-genes-required CAS-TypeVI 1 ";
   }
   elsif( ($definition eq "SubTyping") or ($definition eq "subtyping") or ($definition eq "S") or ($definition eq "s") ){
   	$casdb = $casfinder."/DEF-SubTyping-2.0.3/"; # DEF-SubTyping-2.0 replaced by DEF-SubTyping-2.0.2 then replaced by DEF-SubTyping-2.0.3
   }
   else{
   	#$casdb = $casfinder."/DEF-General-2.0/";
-	#$default = 1;
   }
   
   $casdb =~ s/\/\//\//; #DC - replace '//' by '/'
@@ -1364,8 +1289,6 @@ sub casFinder
         print LOG "\n[$hour:$min:$sec] Otherwise, please retry without Cas option (-cas)\n\n";
       }
 
-      #printhelpall($0);
-      #exit 0;
       $launchCasFinder = 0;
       next;
     }
@@ -1394,8 +1317,6 @@ sub casFinder
         print LOG "\n[$hour:$min:$sec] Otherwise, please retry without Cas option (-cas)\n\n";
       }
 
-      #printhelpall($0);
-      #exit 0;
       $launchCasFinder = 0;
       next;
     }
@@ -1413,12 +1334,9 @@ sub casFinder
       print "___\n";
       print "Please install it by following the documentation provided here: https://github.com/gem-pasteur/macsyfinder\n";
       print "Otherwise, please retry without Cas option (-cas)\n\n";
-      #printhelpall($0);
-      #exit 0;
       $launchCasFinder = 0;
       next;
     }
-
 
     # Call Prokka
     my ($prokka_hour,$prokka_min,$prokka_sec) = Now();
@@ -1843,7 +1761,6 @@ sub casFinder
 				    }
 				}
 			}
-			#print CAS "$p->[$i]->{'name'}\t$p->[$i]->{'id'}\t$RefSeq\t$beginCasCluster\t$endCasCluster\n";
 		} # end of for loop on table of Cas system
 		print "\n";
 		print RESULTS "\n";
@@ -1873,7 +1790,6 @@ sub casFinder
   
       		$jsonLineCas =~ s/,/,\n/g; # make file more readable
 
-  		#print JSONCAS $jsonLineCas;
 		$jsonCAS .= $jsonLineCas;
 
   		#close JSONCAS;
@@ -1909,7 +1825,6 @@ sub casFinder
 				$j++;
 			}
 			#my $nbInTabCCC = @otherTabCCC;
-			#print "Nb CRISPR = $nTabCrispr ; Nb Cas = $nTabCas ;\n TAB CCC (nb:$nbInTabCCC) = @otherTabCCC\n\n";
 			
 			#Fill summary table with essantial info
 			foreach my $elemVccc (@otherTabCCC) {
@@ -1927,7 +1842,6 @@ sub casFinder
 					push(@tabCRISPRCasClusters, $tmpStatus);
 				}
 			}
-			#print "SUMMARY TABLE= @tabCRISPRCasClusters \n";
 			### get clusters of CRISPRs or Cas in function of threshold
 			my $tempCCC = "";
 			my @tabCCC3 = ();
@@ -1935,17 +1849,6 @@ sub casFinder
 			my $exitValue = 0;
 			my $clusteringCC = 1;
 			$k=0;
-			#if( defined($hashCrisprBegin{$otherTabCCC[$k]})  ){
-			#	  $tempCCC = $otherTabCCC[$k]."[".$hashCrisprBegin{$otherTabCCC[$k]}.";"
-			#				.$hashCrisprEnd{$otherTabCCC[$k]}."], "; 
-
-			#}
-			#elsif( defined($hashCasBegin{$otherTabCCC[$k]})){  # Same For Cas
-			#	  $tempCCC = $otherTabCCC[$k]."[".$hashCasBegin{$otherTabCCC[$k]}.";"
-			#				.$hashCasEnd{$otherTabCCC[$k]}."], "; 
-				  ##
-			#}
-			#$k+=1;
             while ( ($k <= $#otherTabCCC) and ($varL <= $#otherTabCCC) ) {
                 #print "11111111111\n";
 				if( defined($hashCrisprBegin{$otherTabCCC[$k]})  ){
@@ -2011,7 +1914,6 @@ sub casFinder
 
 			  chop($tempCCC);
 			  push (@tabCCC3, $tempCCC);
-			  #print "tempCCC (second loop) = $tempCCC ;\nvarL = $varL\nk = $k\nexitValue = $exitValue \n";
 			  $tempCCC = "";
 
 			}
@@ -2020,7 +1922,6 @@ sub casFinder
 			open (RESULTCCC, ">>$clusterResults") or die "open : $!";
 			foreach my $vCCC (@tabCCC3) {
 				my @tabTemp2 = split(/,/, $vCCC);
-				#print "@tabTemp2\n";
 				my ($startCCC, $endCCC, $nbCrCCC, $nbCasCCC);
                 $nbCrCCC = 0;
                 $nbCasCCC = 0;
@@ -2086,7 +1987,6 @@ sub casFinder
     #An error occurred...
     print "An error occurred in CasFinder function\n";
   }
-  #print "Final NB CAS = $nbCas\n";
 
   #create directories Prokka and CasFinder then move all related files to this directory (if -cas is set)
   ##if ($launchCasFinder){
@@ -2134,10 +2034,8 @@ sub fullReport{
 	  while(<CAS>) {
 	  	chomp($_);
 		my ($crisprID,$crispr_positions,$cas) = split(/\t/, $_);
-		#print "ID= $crisprID\n";
 	 	if(defined($crisprID)){
 			$hashCrisprCas{$crisprID} = $cas;
-			#print "CAS= $hashCrisprCas{$crisprID}\n";
 		}
 	  }
 	  close (CAS);
@@ -2172,7 +2070,6 @@ sub fullReport{
 	  close (FULL);
   }
   makesystemcall("mv $fullReport $resultsCRISPRs"); # Move fullReport file into CRISPRs_report
-  #makesystemcall("rm -f $allCas"); # remove $allCas
   return $fullReport;
 }
 #------------------------------------------------------------------------------
@@ -2262,7 +2159,6 @@ sub countOrientation{
 }
 #------------------------------------------------------------------------------
 #LK
-# parse result files and create a GFF file for all
 sub makeGff{
   my($ResultDir,$inputfile,$seqDesc,$nbrcris,$OneSpacerCris_nbr)=@_;
   my @idDir = (); # DC - table containing crisprs IDs and potential directions
@@ -2312,7 +2208,6 @@ sub makeGff{
   $GFFstr="##gff-version 3; $nbrcris CRISPR(s); strain: $seqDesc \n$GFFstr"; # DC
   print GFF $GFFstr;
   close GFF;
-  #print STDERR "GFF results are located in $ResultDir/$inputBasename.gff\n";
 
   return ("$ResultDir/$inputBasename.gff",@idDir);
 }
@@ -2389,11 +2284,6 @@ sub reportToGff{
   }
 
   # derivations of the data - removed by DC - 05/2017
-  #if($start<$end){
-  #  $strand='1';
-  #} else{
-  #  $strand='0';
-  #}
 
   # DC - 05/2017 - replace "//" and get real ID 
   my $reportDR = $reportFile; #DC
@@ -2401,7 +2291,6 @@ sub reportToGff{
   my @tabReport = split(/\//, $reportDR); # DC
   my $idCRISPR = pop(@tabReport); # DC - get last element of table
   $featureId=join("_",$seqid,$start,$end);
-  #$attributes.="name=$featureId;ID=$featureId";
   $attributes.="Name=$featureId;ID=$idCRISPR"; # DC - 05/2017
   $DRsequence=$tag{DR}; delete($tag{DR});
   
@@ -2416,7 +2305,6 @@ sub reportToGff{
 
   # DC adding DR sequence in GFF report (05/2017)
   my $dbSeq = Bio::DB::Fasta->new($inputfile); # DC- to store the fasta sequence (or $userfile)
-  #my @idsSeq = $dbSeq->get_all_primary_ids; # DC- to get ID
   my $sequenceDR = ""; #DC - DR sequence
   my $globalSeq = $dbSeq->seq($seqid); # whole sequence to calculate global AT%
 
@@ -4693,9 +4581,6 @@ sub fill_in_crisprfile
 	}
   } # DC
   
-  #if($duplicatedSpacers == 1){
-  #	$File_Content .= "#Potentially false CRISPR; Repeated spacers (n=".($#tempChainSpacer+1).").";
-  #  	$File_Content .= "\n"; 
   #} # DC
 
   
@@ -4751,12 +4636,8 @@ sub compute_Crispr_score
      $lines[$count] = trim($lines[$count]);
      next if $lines[$count] =~ /^Start/;
      @temp = split(/ +/, $lines[$count]);
-     #if($temp[0]=~""){shift @temp;}
 
      #DC
-     #open(HASH, ">>$fileTest")  or die "Error in opening the input file : $fileTest!";
-     #print HASH "\nSEQ in function = $temp[$#temp]\n"; 
-     #close(HASH);
 
      if($force){
 	
@@ -4779,11 +4660,8 @@ sub compute_Crispr_score
 	}
      }
   }
-  #print "tronc : $troncated <br>";
   $score = $score - $troncated;
   $TotERR = $TotERR/($nb*$DRlength);
-  #print "<br>$crisprfile score : $score __ toterr : $TotERR <br>";
-  #$ans = <STDIN>;
   return ($score,$TotERR);
 }
 #------------------------------------------------------------------------------
@@ -4810,7 +4688,6 @@ sub Find_theCrispr
    $goodcrispr = 0;
    my $o = $#spacers;
 
-   #print "\nDR: $DR\n";
    if($minNbSpacers <= 0){ $minNbSpacers = 1;}
 
    if( $#spacers >= ($minNbSpacers - 1) ) # MINNBSPACERS
@@ -4871,7 +4748,6 @@ sub check_short_crispr
   close WRITER;
 
   # needle program
-  #$needleoptions = "needle -auto -asequence DR -bsequence $spacerfile -gapopen 10.0 -gapextend 0.5 -outfile alignDR_Spacer.needle"; 
   $needleoptions = "needle -auto -asequence DR -bsequence $spacerfile -gapopen 10.0 -gapextend 0.5 -outfile alignDR_Spacer.needle"; # DC
   makesystemcall($needleoptions);
 
@@ -4946,7 +4822,6 @@ sub DR_occ_rev
 
 #------------------------------------------------------------------------------
 #find clusters and store their start and end positions
-# @tabseq = find_clusters(@rep);
 sub find_clusters		# find all possible clusters (even the shortest)
 {
  my @repetitions = @_;
@@ -4960,7 +4835,6 @@ sub find_clusters		# find all possible clusters (even the shortest)
  	print LOG "[$hour:$min:$sec] Find clusters and store their start and end positions\n";
  } 
 
-#print "nbr de rep = $#repetitions --\n";
 $tabseq[$nb_clust] = $repetitions[$count]->Pos1;	# start position of the first cluster
   while($count < $#repetitions)
   {
@@ -5261,13 +5135,6 @@ In this example, your result folder will be in the directory named: "Result_test
 (5): perl $0 -in sequence.fasta -cas -log -out RES_Sequence -cf CasFinder-2.0.3 -def G -force -so path/to/sel392v2.so
 
 HEREDOC
-}
-
-sub printversion
-{
-    my $programname = shift @_;
-    print "This is $programname, version $version,\n";
-    print "a perl script to identify CRISPR arrays and associated Cas genes from DNA sequences\n";
 }
 
 sub printhelpbasic
