@@ -62,7 +62,7 @@ def active():
     print(f'Welcome to {config["System Variable"]["casfinder"]}.\n')
     # коррекция DRs
     DRtrunMism = 100 / float(parametrs['DRtrunMism'])
-    DRerrors = float(parametrs['DRerrors']) / 100  # коррекция на словарь parametrs
+    DRerrors = float(parametrs['DRerrors']) / 100
     ic(DRtrunMism, DRerrors)
 
     # отметка времени при запуске процесса
