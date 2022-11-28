@@ -92,9 +92,9 @@ ic(parametrs)
 function = config["Launch Function"]["Function"].split(' ')
 ic(function)
 
-basename = function[function.index("-in") + 1]
-outdir = function[function.index("-out") + 1]
-ic(basename, outdir)
+parametrs['userfile'] = function[function.index("-in") + 1]
+parametrs['outputDirName'] = function[function.index("-out") + 1]
+ic(parametrs['userfile'], parametrs['outputDirName'])
 
 # основная ветка действий
 active()
