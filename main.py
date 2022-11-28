@@ -9,6 +9,7 @@
 from Bio import SeqIO
 from datetime import datetime
 import re
+import os
 import configparser  # для чтения INI файла
 import Bio.Data.CodonTable
 
@@ -77,12 +78,16 @@ def active():
     ic(DRtrunMism, DRerrors)
 
     # отметка времени при запуске процесса
-    start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    start_time = datetime.now().strftime("%Y-%m-%d | %H:%M:%S")
     print(f'Launch Time: {start_time}')
 
     # запуск работы с BIO | to_do
     # record = SeqIO.read(userfile, "fasta")
     inputfileCount = 0
+
+    # создание папки с итогом
+    path_outDir = f'{os.getcwd()}\\{parametrs["outputDirName"]}'
+    if not os.path.isdir(path_outDir): os.mkdir(path_outDir)
 
 
 # подключение базовых настроек в INI файле
