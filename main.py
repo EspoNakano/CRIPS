@@ -61,8 +61,8 @@ def compare_clusters(el2, el1):  # функция прмменяется тол�
 def active():
     print(f'Welcome to {config["System Variable"]["casfinder"]}.\n')
     # коррекция DRs
-    DRtrunMism = 100 / float(config["Base Variable"]["DRtrunMism"])
-    DRerrors = float(config["Base Variable"]["DRerrors"]) / 100
+    DRtrunMism = 100 / float(config["Base Variable"]["DRtrunMism"])  # коррекция на словарь parametrs
+    DRerrors = float(config["Base Variable"]["DRerrors"]) / 100  # коррекция на словарь parametrs
 
     # отметка времени при запуске процесса
     start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
