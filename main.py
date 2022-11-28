@@ -60,6 +60,17 @@ def compare_clusters(el2, el1):  # функция прмменяется тол�
 
 def active():
     print(f'Welcome to {config["System Variable"]["casfinder"]}.\n')
+    # проверка параметров запуска | to_do
+    function = config["Launch Function"]["Function"].split(' ')
+    ic(function)
+
+    # проверка наличия входного файла
+    # to_do
+
+    parametrs['userfile'] = function[function.index("-in") + 1]
+    parametrs['outputDirName'] = function[function.index("-out") + 1]
+    ic(parametrs['userfile'], parametrs['outputDirName'])
+
     # коррекция DRs
     DRtrunMism = 100 / float(parametrs['DRtrunMism'])
     DRerrors = float(parametrs['DRerrors']) / 100
@@ -73,11 +84,8 @@ def active():
     # record = SeqIO.read(userfile, "fasta")
     inputfileCount = 0
 
-    ResultDir = ''
-
 
 # подключение базовых настроек в INI файле
-# config["Base Variable"]["SpSim"]
 config = configparser.RawConfigParser()
 config.optionxform = str
 config.read("settings.ini")
@@ -86,16 +94,7 @@ parametrs = {}
 [parametrs.update({item[0]: item[1]}) for item in config['Base Variable'].items()]
 ic(parametrs)
 
-# проверка наличия входного файла | to_do
 # запуск проверки наличия программ | to_do
-# проверка параметров запуска | to_do
-
-function = config["Launch Function"]["Function"].split(' ')
-ic(function)
-
-parametrs['userfile'] = function[function.index("-in") + 1]
-parametrs['outputDirName'] = function[function.index("-out") + 1]
-ic(parametrs['userfile'], parametrs['outputDirName'])
 
 # основная ветка действий
 active()
