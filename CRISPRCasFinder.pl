@@ -1064,7 +1064,6 @@ sub makeHtml
 	  print HTML "<table class ='table2'  BGCOLOR=\#ffffff  width=70%>";
 
         }
-	
 	#### DR or Spacer
 	if($tab[2] eq "CRISPRdr" || $tab[2] eq "CRISPRspacer"){
 	  $start = $tab[3];
@@ -1107,11 +1106,8 @@ sub makeHtml
 
 	    print HTML "<td align = 'left'><span style='background:$col;'><FONT size=2.7 face= 'Courier New'>$sequence </FONT></span></td>";
 	    print HTML "<td><FONT size=2.5 color = '\#000099'>$end</font></td></tr>";
-
 	  }
-	 
 	}
-
 	#### RightFLANK
 	if($tab[2] eq "RightFLANK"){
 	  $start = $tab[3];
@@ -1136,15 +1132,9 @@ sub makeHtml
 	  print HTML "<ul><li><FONT COLOR= \#000099>Right flanking sequence: </FONT> $rightFlank </li></ul>\n";
 
 	  print HTML "</div><br/><br/>\n";
-	  
-
 	}
-	
     }
-
   }
-
-
   if(-e $casFile){
   
     print HTML "<center><table class = 'sub' width = '80%'><tr><th>Cas system(s) and genes</th></tr></table></center><br/><br/>\n";
