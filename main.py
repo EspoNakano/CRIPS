@@ -4,7 +4,7 @@
 # -------------
 # my ($value) = @_          || указание изначальной переменной в функции
 # s/A/O/g -> mAmbA => mOmbO __ /g (global find) /s (oneline value)
-
+from icecream import ic  # библиотека для отладки
 # импорт библиотек
 from Bio import SeqIO
 from datetime import datetime
@@ -13,7 +13,13 @@ import os
 import configparser  # для чтения INI файла
 import Bio.Data.CodonTable
 
-from icecream import ic  # библиотека для отладки
+
+def casFinder():
+    repProkka = ''
+    if useProkka:
+        repProkka = parametrs['outputDirName']
+    else:
+        repProkka = parametrs['outputDirName']
 
 
 def makeHTML(gff, casFile, resDir, refSeq, seqDesc, seqLen, globalAT, nbrcris, OneSpacerCris_nbr):
@@ -60,7 +66,6 @@ def compare_clusters(el2, el1):  # функция прмменяется тол�
 
 
 def active():
-    print(f'Welcome to {config["System Variable"]["casfinder"]}.\n')
     # проверка параметров запуска | to_do
     function = config["Launch Function"]["Function"].split(' ')
     ic(function)
@@ -70,7 +75,10 @@ def active():
 
     parametrs['userfile'] = function[function.index("-in") + 1]
     parametrs['outputDirName'] = function[function.index("-out") + 1]
-    ic(parametrs['userfile'], parametrs['outputDirName'])
+    for item in function:
+        if item[1:] in parametrs:
+            parametrs[item[1:]] = function[function.index(item) + 1]
+    ic(parametrs['userfile'], parametrs['outputDirName'], parametrs['so'])
 
     # коррекция DRs
     DRtrunMism = 100 / float(parametrs['DRtrunMism'])
@@ -78,6 +86,7 @@ def active():
     ic(DRtrunMism, DRerrors)
 
     # отметка времени при запуске процесса
+    print(f'Welcome to {config["System Variable"]["casfinder"]}.\n')
     start_time = datetime.now().strftime("%Y-%m-%d | %H:%M:%S")
     print(f'Launch Time: {start_time}')
 
