@@ -14,12 +14,12 @@ import configparser  # для чтения INI файла
 import Bio.Data.CodonTable
 
 
-def casFinder():
+def casFinder(resDir, inFile):
     repProkka = ''
-    if useProkka:
-        repProkka = parametrs['outputDirName']
-    else:
-        repProkka = parametrs['outputDirName']
+    #if useProkka:
+        #repProkka = resDir
+    #else:
+        #repProkka = resDir
 
 
 def makeHTML(gff, casFile, resDir, refSeq, seqDesc, seqLen, globalAT, nbrcris, OneSpacerCris_nbr):
@@ -74,7 +74,7 @@ def active():
     # to_do
 
     parametrs['userfile'] = function[function.index("-in") + 1]
-    parametrs['outputDirName'] = function[function.index("-out") + 1]
+    parametrs['outputDirName'] = function[function.index("-out") + 1] if '-out' in function else 'Result'
     for item in function:
         if item[1:] in parametrs:
             parametrs[item[1:]] = function[function.index(item) + 1]
@@ -95,8 +95,10 @@ def active():
     inputfileCount = 0
 
     # создание папки с итогом
-    path_outDir = f'{os.getcwd()}\\{parametrs["outputDirName"]}'
-    if not os.path.isdir(path_outDir): os.mkdir(path_outDir)
+    outDir = f'{os.getcwd()}\\{parametrs["outputDirName"]}'
+    if not os.path.isdir(outDir): os.mkdir(outDir)
+
+    casFinder(outDir, parametrs['userfile'])
 
 
 # подключение базовых настроек в INI файле
