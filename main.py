@@ -112,8 +112,12 @@ def active():
     options = {'-in': 'userfile', '-i': 'userfile',
                '-out': 'outputDirName', '-outdir': 'outputDirName',
                '-keepAll': 'keep', '-keep': 'keep',
-               '-LOG': 'logOption', '-log': 'logOption'}
-    bool_options = ['keep', 'logOption']
+               '-LOG': 'logOption', '-log': 'logOption',
+               '-HTML': 'html', '-html': 'html',
+               '-copyCSS': 'cssFile',
+               '-soFile': 'so', '-so': 'so',
+               '-minSeqSize': 'seqMinSize', '-mSS': 'seqMinSize'}
+    bool_options = ['keep', 'logOption', 'html']
 
     # коррекция первичных параметров согласно требованиям пользователя
     for item in function:
@@ -182,7 +186,7 @@ list_programm = ['vmatch2.txt', 'mkvtree2', 'vsubseqselect2', 'fuzznuc', 'needle
 for item in list_programm:
     if isProgInstalled(item):
         print(f'_____{item} is found_____')
-    # else:
+    # else:  # активировать, когда будут программы
         # sys.exit(f'Not found {item}')
 
 active()  # основная ветка действий
