@@ -116,7 +116,17 @@ def active():
                '-HTML': 'html', '-html': 'html',
                '-copyCSS': 'cssFile',
                '-soFile': 'so', '-so': 'so',
-               '-minSeqSize': 'seqMinSize', '-mSS': 'seqMinSize'}
+               '-minSeqSize': 'seqMinSize', '-mSS': 'seqMinSize',
+               '-mismDRs': 'DRerrors', '-md': 'DRerrors',
+               '-truncDR': 'DRtrunMism', '-t': 'DRtrunMism',
+               '-minDR': 'M1', '-mr': 'M1',
+               '-maxDR': 'M2', '-xr': 'M2',
+               '-minSR': 'S1', '-ms': 'S1',
+               '-maxSR': 'S2', '-xs': 'S2',
+               '-noMism': 'mismOne', '-n': 'mismOne',
+               '-percSPmin': 'Sp1', '-pm': 'Sp1',
+               '-percSPmax': 'Sp2', '-px': 'Sp2',
+               '-spSim': 'SpSim', '-s': 'SpSim'}  # остановился на -DBcrispr
     bool_options = ['keep', 'logOption', 'html']
 
     # коррекция первичных параметров согласно требованиям пользователя
