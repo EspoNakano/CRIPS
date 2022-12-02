@@ -10,16 +10,42 @@ from Bio import SeqIO
 from datetime import datetime
 import re
 import os
+import csv
 import configparser  # для чтения INI файла
 import Bio.Data.CodonTable
 
 
 def casFinder(resDir, inFile):
-    repProkka = ''
     #if useProkka:
         #repProkka = resDir
+        # создание папки prokka
     #else:
         #repProkka = resDir
+        # создание папки prodigal
+
+    jsonCAS = ''
+
+    nbCas = 0
+    casdb = ''
+    default = 0
+    addToMaxSy = ''
+    if parametrs['definition'].lower() == ('general' or 'g'):
+        print('General')
+        # создание папки general
+    elif parametrs['definition'].lower() == ('typing' or 't'):
+        print('Typing')
+        # создание папки typing
+    elif parametrs['definition'].lower() == ('subtyping' or 's'):
+        print('SubTyping')
+        # создание папки subtyping
+    result = ...  # создание файла Cas_REPORT.tsv
+    with open(f'{resDir}\\Cas_REPORT.tsv', 'wt') as out_file:
+        tsv_writer = csv.writer(out_file, delimiter='\t')
+        tsv_writer.writerow(['...', '...'])
+    allCas = ...  # создание файла CRISPR-Cas_Systems_vicinity.tsv
+    with open(f'{resDir}\\CRISPR-Cas_Systems_vicinity.tsv', 'wt') as out_file:
+        tsv_writer = csv.writer(out_file, delimiter='\t')
+        tsv_writer.writerow(['...', '...'])
 
 
 def makeHTML(gff, casFile, resDir, refSeq, seqDesc, seqLen, globalAT, nbrcris, OneSpacerCris_nbr):
@@ -68,7 +94,7 @@ def compare_clusters(el2, el1):  # функция прмменяется тол�
 def active():
     # проверка параметров запуска | to_do
     function = config["Launch Function"]["Function"].split(' ')
-    ic(function)
+    # ic(function)
 
     # проверка наличия входного файла
     # to_do
@@ -78,12 +104,12 @@ def active():
     for item in function:
         if item[1:] in parametrs:
             parametrs[item[1:]] = function[function.index(item) + 1]
-    ic(parametrs['userfile'], parametrs['outputDirName'], parametrs['so'])
+    # ic(parametrs['userfile'], parametrs['outputDirName'], parametrs['so'])
 
     # коррекция DRs
     DRtrunMism = 100 / float(parametrs['DRtrunMism'])
     DRerrors = float(parametrs['DRerrors']) / 100
-    ic(DRtrunMism, DRerrors)
+    # ic(DRtrunMism, DRerrors)
 
     # отметка времени при запуске процесса
     print(f'Welcome to {config["System Variable"]["casfinder"]}.\n')
