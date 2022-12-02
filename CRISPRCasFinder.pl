@@ -196,7 +196,6 @@ GetOptions (
     "ArchaCas|ac" => sub { $launchCasFinder=1; $kingdom = "Archaea"; },  # INI
 ) or do {
     print STDERR "Error in command line arguments\n";
-    printhelpbasic($0);
     exit EX_USAGE;
 };
 
@@ -209,12 +208,10 @@ if ($n_rem_arguments) {
 # Check that input file was given and exists
 if (!$userfile) {
     print STDERR "Error: input file not given.\n";
-    printhelpbasic($0);
     exit EX_USAGE;
 }
 if (not -e $userfile) {
     print STDERR "Error: file $userfile not found. Please check that the file exists or enter a correct file name.\n";
-    printhelpbasic($0);
     exit EX_NOINPUT;
 }
 
@@ -2729,8 +2726,6 @@ sub foundInCRISPRdb
   my ($seq,$start,$end) = @_;
   my $found = 0; # boolean value to indicate if the same CRISPR has been found in DB.
   my %hashSeq = ();
-  #my %hashStart = ();
-  #my %hashEnd = ();
   my ($dbSeq,$dbStart,$dbEnd,$line); 
 
   #Translate $seq
@@ -3221,13 +3216,6 @@ sub analyzeCrisprs
   else { $nbSpacers = "NA"; }
 
   return ($seqid,$start,$end,$potentiallyFalse,$DRconsensus,$DRlength,$nbSpacers);
-}
-#------------------------------------------------------------------------------
-sub compare
-{
-  my ($val1, $val2) = @_;
-  return ($val1<=$val2*0.5) || ($val1>=$val2 * 1.5) ? 1 : 0;
-  #if( ($val1<=$val2*0.5) || ($val1>=$val2 * 1.5) ){return 1;} else {return 0;}
 }
 #------------------------------------------------------------------------------
 # DC - 05/2017 - Calculate AT%
@@ -5125,12 +5113,4 @@ In this example, your result folder will be in the directory named: "Result_test
 (5): perl $0 -in sequence.fasta -cas -log -out RES_Sequence -cf CasFinder-2.0.3 -def G -force -so path/to/sel392v2.so
 
 HEREDOC
-}
-
-sub printhelpbasic
-{
-    my $programname = shift @_;
-    print "Usage: $programname [options] [-in] <filename>\n";
-    print "type -version or -v to see the current version\n";
-    print "type -help or -h for help\n";
 }
