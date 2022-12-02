@@ -13,6 +13,7 @@ import os
 import csv
 import sys
 import json
+import pandas as pd
 import configparser
 import Bio.Data.CodonTable
 
@@ -46,8 +47,6 @@ def casFinder(resDir, inFile):
 
     # строка 1212 ?
 
-    outDir_tsv = f'{resDir}\\TSV'
-    if not os.path.isdir(outDir_tsv): os.mkdir(outDir_tsv)
     with open(f'{outDir_tsv}\\Cas_REPORT.tsv', 'wt') as results:
         tsv_writer = csv.writer(results, delimiter='\t')
         tsv_writer.writerow(['...', '...'])
@@ -106,9 +105,9 @@ def compare_clusters(el2, el1):  # функция прмменяется тол�
 
 
 def active():
+    global outDir_tsv
     # проверка параметров запуска | to_do
     function = config["Launch Function"]["Function"].split(' ')
-    ic(function)
     options = {'-in': 'userfile', '-i': 'userfile',
                '-out': 'outputDirName', '-outdir': 'outputDirName',
                '-keepAll': 'keep', '-keep': 'keep',
@@ -126,7 +125,9 @@ def active():
                '-noMism': 'mismOne', '-n': 'mismOne',
                '-percSPmin': 'Sp1', '-pm': 'Sp1',
                '-percSPmax': 'Sp2', '-px': 'Sp2',
-               '-spSim': 'SpSim', '-s': 'SpSim'}  # остановился на -DBcrispr
+               '-spSim': 'SpSim', '-s': 'SpSim',  # остановился на -DBcrispr
+
+               '-metagenome': 'metagenome', '-meta': 'metagenome'}
     bool_options = ['keep', 'logOption', 'html']
 
     # коррекция первичных параметров согласно требованиям пользователя
@@ -139,14 +140,13 @@ def active():
     if not isProgInstalled(parametrs['userfile']):
         sys.exit(f'Not found {parametrs["userfile"]}')
     parametrs['outputDirName'] = function[function.index("-out") + 1] if '-out' in function else 'Result'
-    ic(parametrs)
 
     # коррекция DRs
     drTrunMism = 100 / float(parametrs['DRtrunMism'])
     drErrors = float(parametrs['DRerrors']) / 100
 
     # отметка времени при запуске процесса
-    start_time = datetime.now().strftime("%Y-%m-%d | %H:%M:%S")
+    start_time = datetime.now().strftime("%d-%m-%Y | %H:%M:%S")
     print(f'Launch Time: {start_time}')
 
     # запуск работы с BIO | to_do
@@ -155,7 +155,9 @@ def active():
 
     # создание папки с итогом
     outDir = f'{os.getcwd()}\\{parametrs["outputDirName"]}'
+    outDir_tsv = f'{outDir}\\TSV'
     if not os.path.isdir(outDir): os.mkdir(outDir)
+    if not os.path.isdir(outDir_tsv): os.mkdir(outDir_tsv)
 
     outDir_gff = f'{outDir}\\GFF'
     if not os.path.isdir(outDir_gff): os.mkdir(outDir_gff)
@@ -176,8 +178,34 @@ def active():
 
     # JSON file 'result'
     with open(f'{outDir}\\jsonResult.json', 'wt') as jsonRes:
-        json_write = csv.writer(jsonRes, delimiter='\n')
+        jsonRes.write('{\n')
+        jsonRes.write(f'Date:  {start_time}  [dd-mm-yy | hh-mm-ss]\n')
+        jsonRes.write('Version:  python\n')
+        jsonRes.write(f'Command:  {config["Launch Function"]["Function"]}\n')
     jsonRes.close()
+
+    allFoundCrisprs = 0
+    allCrisprs = 0
+    nbrAllCas = 0
+
+    actualMetaOptionValue = parametrs['metagenome']
+
+    with open(f'{outDir_tsv}\\CRISPR-Cas_summary.tsv', 'wt') as resultsCRISPRCasSummary:
+        resultsCRISPRCasSummary.write('text')
+    resultsCRISPRCasSummary.close()
+
+    if json.loads(parametrs['clusteringThreshold'].lower()) and json.loads(parametrs['launchCasFinder'].lower()):
+        with open(f'{outDir_tsv}\\CRISPR-Cas_clusters.tsv', 'wt') as clusterResultsHead:
+            clusterResultsHead.write('text')
+        clusterResultsHead.close()
+
+    # подвязать pandas к созданию XLS
+    # if json.loads(parametrs['classifySmall'].lower()):
+    #    with open(f'{outDir}\\smallArraysReclassification.xls', 'wt') as smallArrays:
+    #        smallArrays.write('text')
+    #    smallArrays.close()
+
+    # цикл с 412 строки
 
     casFinder(outDir, parametrs['userfile'])
 
