@@ -109,22 +109,29 @@ def active():
     # проверка параметров запуска | to_do
     function = config["Launch Function"]["Function"].split(' ')
     ic(function)
+    options = {'-in': 'userfile', '-i': 'userfile',
+               '-out': 'outputDirName', '-outdir': 'outputDirName',
+               '-keepAll': 'keep', '-keep': 'keep',
+               '-LOG': 'logOption', '-log': 'logOption'}
+    bool_options = ['keep', 'logOption']
 
-    # проверка наличия входного файла
-    # to_do
-
-    parametrs['userfile'] = function[function.index("-in") + 1]
-    parametrs['outputDirName'] = function[function.index("-out") + 1] if '-out' in function else 'Result'
+    # коррекция первичных параметров согласно требованиям пользователя
     for item in function:
-        if item[1:] in parametrs:
-            parametrs[item[1:]] = function[function.index(item) + 1]
+        if item in options:
+            if options[item] not in bool_options:
+                parametrs[options[item]] = function[function.index(item) + 1]
+            else:
+                parametrs[options[item]] = '1'
+    if not isProgInstalled(parametrs['userfile']):
+        sys.exit(f'Not found {parametrs["userfile"]}')
+    parametrs['outputDirName'] = function[function.index("-out") + 1] if '-out' in function else 'Result'
+    ic(parametrs)
 
     # коррекция DRs
-    DRtrunMism = 100 / float(parametrs['DRtrunMism'])
-    DRerrors = float(parametrs['DRerrors']) / 100
+    drTrunMism = 100 / float(parametrs['DRtrunMism'])
+    drErrors = float(parametrs['DRerrors']) / 100
 
     # отметка времени при запуске процесса
-    print(f'Welcome to {config["System Variable"]["casfinder"]}.\n')
     start_time = datetime.now().strftime("%Y-%m-%d | %H:%M:%S")
     print(f'Launch Time: {start_time}')
 
@@ -136,6 +143,28 @@ def active():
     outDir = f'{os.getcwd()}\\{parametrs["outputDirName"]}'
     if not os.path.isdir(outDir): os.mkdir(outDir)
 
+    outDir_gff = f'{outDir}\\GFF'
+    if not os.path.isdir(outDir_gff): os.mkdir(outDir_gff)
+
+    # 318 - 322 ??
+    # 325 - 344 для вузуализации CRISPRs and Cas genes (стоит удалить ?)
+    # 348 получение размера входного файла в байтах
+
+    # для логов
+    if json.loads(parametrs['keep'].lower()):
+        outDir_log = f'{outDir}\\Temporary File'
+    if not os.path.isdir(outDir_log): os.mkdir(outDir_log)
+    if json.loads(parametrs['logOption'].lower()) and json.loads(parametrs['keep'].lower()):
+        with open(f'{outDir_log}\\log.txt', 'wt') as logfile:
+            lof_write = csv.writer(logfile, delimiter='\t')
+            lof_write.writerow([parametrs["userfile"], f'SIZE: {os.path.getsize(parametrs["userfile"])} bytes'])
+        logfile.close()
+
+    # JSON file 'result'
+    with open(f'{outDir}\\jsonResult.json', 'wt') as jsonRes:
+        json_write = csv.writer(jsonRes, delimiter='\n')
+    jsonRes.close()
+
     casFinder(outDir, parametrs['userfile'])
 
 
@@ -146,16 +175,14 @@ config.read("settings.ini")
 
 parametrs = {}
 [parametrs.update({item[0]: item[1]}) for item in config['Base Variable'].items()]
-ic(parametrs)
 
 # запуск проверки наличия программ | to_do
+print(f'Welcome to {config["System Variable"]["casfinder"]}.\n')
 list_programm = ['vmatch2.txt', 'mkvtree2', 'vsubseqselect2', 'fuzznuc', 'needle']
-# vmatch2, mkvtree2, vsubseqselect2, fuzznuc, needle
 for item in list_programm:
     if isProgInstalled(item):
-        print(f'{item}: ready')
-    else:
-        sys.exit(f'Not found {item}')
+        print(f'_____{item} is found_____')
+    # else:
+        # sys.exit(f'Not found {item}')
 
-# основная ветка действий
-active()
+active()  # основная ветка действий
