@@ -11,41 +11,55 @@ from datetime import datetime
 import re
 import os
 import csv
-import configparser  # для чтения INI файла
+import sys
+import json
+import configparser
 import Bio.Data.CodonTable
 
 
-def casFinder(resDir, inFile):
-    #if useProkka:
-        #repProkka = resDir
-        # создание папки prokka
-    #else:
-        #repProkka = resDir
-        # создание папки prodigal
+def isProgInstalled(program):
+    # vmatch2, mkvtree2, vsubseqselect2, fuzznuc, needle
+    path = os.getcwd()
+    for root, dirs, files in os.walk(path):
+        if program in files:
+            return os.path.join(root, program)
 
+
+def casFinder(resDir, inFile):
+    if json.loads(parametrs['useProkka'].lower()):
+        repProkka = f'{resDir}\\prokka_'
+        if not os.path.isdir(repProkka): os.mkdir(repProkka)
+    else:
+        repProkka = f'{resDir}\\prodigal_'
+        if not os.path.isdir(repProkka): os.mkdir(repProkka)
     jsonCAS = ''
 
     nbCas = 0
-    casdb = ''
     default = 0
     addToMaxSy = ''
     if parametrs['definition'].lower() == ('general' or 'g'):
-        print('General')
-        # создание папки general
+        cas_db = f'{os.getcwd()}\\DEF-Class'
     elif parametrs['definition'].lower() == ('typing' or 't'):
-        print('Typing')
-        # создание папки typing
+        cas_db = f'{os.getcwd()}\\DEF-Typing'
     elif parametrs['definition'].lower() == ('subtyping' or 's'):
-        print('SubTyping')
-        # создание папки subtyping
-    result = ...  # создание файла Cas_REPORT.tsv
-    with open(f'{resDir}\\Cas_REPORT.tsv', 'wt') as out_file:
-        tsv_writer = csv.writer(out_file, delimiter='\t')
+        cas_db = f'{os.getcwd()}\\DEF-SubTyping'
+
+    # строка 1212 ?
+
+    outDir_tsv = f'{resDir}\\TSV'
+    if not os.path.isdir(outDir_tsv): os.mkdir(outDir_tsv)
+    with open(f'{outDir_tsv}\\Cas_REPORT.tsv', 'wt') as results:
+        tsv_writer = csv.writer(results, delimiter='\t')
         tsv_writer.writerow(['...', '...'])
-    allCas = ...  # создание файла CRISPR-Cas_Systems_vicinity.tsv
-    with open(f'{resDir}\\CRISPR-Cas_Systems_vicinity.tsv', 'wt') as out_file:
-        tsv_writer = csv.writer(out_file, delimiter='\t')
+    results.close()
+    with open(f'{outDir_tsv}\\CRISPR-Cas_Systems_vicinity.tsv', 'wt') as allCas:
+        tsv_writer = csv.writer(allCas, delimiter='\t')
         tsv_writer.writerow(['...', '...'])
+    allCas.close()
+    with open(f'{outDir_tsv}\\CRISPR-Cas_summary.tsv', 'wt') as resultsCRISPRCasSummary:
+        tsv_writer = csv.writer(resultsCRISPRCasSummary, delimiter='\t')
+        tsv_writer.writerow(['...', '...'])
+    resultsCRISPRCasSummary.close()
 
 
 def makeHTML(gff, casFile, resDir, refSeq, seqDesc, seqLen, globalAT, nbrcris, OneSpacerCris_nbr):
@@ -94,7 +108,7 @@ def compare_clusters(el2, el1):  # функция прмменяется тол�
 def active():
     # проверка параметров запуска | to_do
     function = config["Launch Function"]["Function"].split(' ')
-    # ic(function)
+    ic(function)
 
     # проверка наличия входного файла
     # to_do
@@ -104,12 +118,10 @@ def active():
     for item in function:
         if item[1:] in parametrs:
             parametrs[item[1:]] = function[function.index(item) + 1]
-    # ic(parametrs['userfile'], parametrs['outputDirName'], parametrs['so'])
 
     # коррекция DRs
     DRtrunMism = 100 / float(parametrs['DRtrunMism'])
     DRerrors = float(parametrs['DRerrors']) / 100
-    # ic(DRtrunMism, DRerrors)
 
     # отметка времени при запуске процесса
     print(f'Welcome to {config["System Variable"]["casfinder"]}.\n')
@@ -137,6 +149,13 @@ parametrs = {}
 ic(parametrs)
 
 # запуск проверки наличия программ | to_do
+list_programm = ['vmatch2.txt', 'mkvtree2', 'vsubseqselect2', 'fuzznuc', 'needle']
+# vmatch2, mkvtree2, vsubseqselect2, fuzznuc, needle
+for item in list_programm:
+    if isProgInstalled(item):
+        print(f'{item}: ready')
+    else:
+        sys.exit(f'Not found {item}')
 
 # основная ветка действий
 active()
