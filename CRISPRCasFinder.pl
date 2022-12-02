@@ -376,11 +376,9 @@ else{
 	print "[$start_hour:$start_min:$start_sec] ---> Results will be stored in $ResultDirFinal\n\n";
 }
 
-#my $totalNumberOfCrisprs=0; #LK
 my $allFoundCrisprs = 0; #DC
 my $allCrisprs = 0;
 my $nbrAllCas = 0; # Total nbrCas
-my $currentRepository = getcwd();
 
 #actualMetaOptionValue
 my $actualMetaOptionValue = $metagenome;
@@ -1205,9 +1203,6 @@ sub casFinder
   }
   elsif( ($definition eq "SubTyping") or ($definition eq "subtyping") or ($definition eq "S") or ($definition eq "s") ){
   	$casdb = $casfinder."/DEF-SubTyping-2.0.3/"; # DEF-SubTyping-2.0 replaced by DEF-SubTyping-2.0.2 then replaced by DEF-SubTyping-2.0.3
-  }
-  else{
-  	#$casdb = $casfinder."/DEF-General-2.0/";
   }
   
   $casdb =~ s/\/\//\//; #DC - replace '//' by '/'
