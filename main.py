@@ -135,38 +135,38 @@ def active():
                '-spSim': 'SpSim', '-s': 'SpSim',
                '-DBcrispr': 'crisprdb', '-dbc': 'crisprdb',
                '-repeats': 'repeats', '-rpts': 'repeats',
-               '-DIRrepeat': '', '-drpt': '',
-               '-flank': '', '-fl': '',
-               '-levelMin': '', '-lMin': '',
-               '-classifySmallArrays': '', '-classifySmall': '', '-cSA': '',
-               '-forceDetection': '', '-force': '',
-               '-fosterDRLength': '', '-fDRL': '',
-               '-fosterDRBegin': '', '-fDRB': '',
-               '-fosterDREnd': '', '-fDRE': '',
-               '-MatchingRepeats': '', '-Mrpts': '',
-               '-minNbSpacers': '', '-mNS': '',
-               '-betterDetectTrunc': '', '-bDT': '',
-               '-PercMismTrunc': '', '-PMT': '',
+               '-DIRrepeat': 'dirRepeat', '-drpt': 'dirRepeat',
+               '-flank': 'flankingRegion', '-fl': 'flankingRegion',
+               '-levelMin': 'levelMin', '-lMin': 'levelMin',
+               '-classifySmallArrays': 'classifySmall', '-classifySmall': 'classifySmall', '-cSA': 'classifySmall',
+               '-forceDetection': 'force', '-force': 'force',
+               '-fosterDRLength': 'fosteredDRLength', '-fDRL': 'fosteredDRLength',
+               '-fosterDRBegin': 'fosteredDRBegin', '-fDRB': 'fosteredDRBegin',
+               '-fosterDREnd': 'fosteredDREnd', '-fDRE': 'fosteredDREnd',
+               '-MatchingRepeats': 'repeatsQuery', '-Mrpts': 'repeatsQuery',
+               '-minNbSpacers': 'minNbSpacers', '-mNS': 'minNbSpacers',
+               '-betterDetectTrunc': 'betterDetectTruncatedDR', '-bDT': 'betterDetectTruncatedDR',
+               '-PercMismTrunc': 'percentageMismatchesHalfDR', '-PMT': 'percentageMismatchesHalfDR',
                # Detection of Cas clusters
-               '-cas': '', '-cs': '',
+               '-cas': 'launchCasFinder', '-cs': 'launchCasFinder',
                '-ccvRep': 'writeFullReport', '-ccvr': 'writeFullReport',
-               '-vicinity': '', 'vi': '',
-               '-CASFinder': '', '-cf': '',
-               '-cpuMacSyFinder': '', '-cpuM': '',
-               '-rcfowce': '',
-               '-definition': '', '-def': '',
-               '-gffAnnot': '', '-gff': '',
-               '-proteome': '', '-faa': '',
-               '-cluster': '', '-ccc': '',
-               '-getSummaryCasfinder': '', '-gscf': '',
-               '-geneticCode': '', '-gcode': '',
+               '-vicinity': 'vicinity', 'vi': 'vicinity',
+               '-CASFinder': 'casfinder', '-cf': 'casfinder',
+               '-cpuMacSyFinder': 'cpuMacSyFinder', '-cpuM': 'cpuMacSyFinder',
+               '-rcfowce': 'rcfowce',
+               '-definition': 'definition', '-def': 'definition',
+               '-gffAnnot': 'userGFF', '-gff': 'userGFF',
+               '-proteome': 'userFAA', '-faa': 'userFAA',
+               '-cluster': '', '-ccc': 'clusteringThreshold',
+               '-getSummaryCasfinder': 'gscf', '-gscf': 'gscf',
+               '-geneticCode': 'genCode', '-gcode': 'genCode',
                '-metagenome': 'metagenome', '-meta': 'metagenome',
                # [Use Prokka instead of Prodigal (default option)]
                # Prokka (https://github.com/tseemann/prokka) must be installed in order to use following options
-               '-useProkka': '', '-prokka': '',
-               '-cpuProkka': '', '-cpuP': '',
-               '-ArchaCas': '', '-ac': ''}
-    bool_options = ['keep', 'logOption', 'html']
+               '-useProkka': 'useProkka', '-prokka': 'useProkka',
+               '-cpuProkka': 'cpuProkka', '-cpuP': 'cpuProkka',
+               '-ArchaCas': 'kingdom', '-ac': 'kingdom'}
+    bool_options = ['keep', 'logOption', 'html', 'kingdom']
 
     # коррекция первичных параметров согласно требованиям пользователя
     for item in function:
@@ -174,10 +174,21 @@ def active():
             if options[item] not in bool_options:
                 parametrs[options[item]] = function[function.index(item) + 1]
             else:
-                parametrs[options[item]] = '1'
+                if item == ('-ArchaCas' or '-ac'):
+                    parametrs[options[item]] = 'Archaea'
+                else:
+                    parametrs[options[item]] = '1'
     if not isProgInstalled(parametrs['userfile']):
         sys.exit(f'Not found {parametrs["userfile"]}')
     parametrs['outputDirName'] = function[function.index("-out") + 1] if '-out' in function else 'Result'
+    if json.loads(parametrs['force'].lower()):
+        parametrs['M1'] = parametrs['fosteredDRLength']
+    if json.loads(parametrs['useProkka'].lower()):
+        parametrs['useProdigal'] = '0'
+    else:
+        parametrs['useProdigal'] = '1'
+    if parametrs['kingdom'] == 'Archaea':
+        parametrs['launchCasFinder'] = '1'
 
     # коррекция DRs
     drTrunMism = 100 / float(parametrs['DRtrunMism'])
@@ -216,7 +227,7 @@ def active():
         jsonRes.write(f'Date:  {start_time}  [dd-mm-yy | hh-mm-ss]\n')
         jsonRes.write('Version:  python\n')
         jsonRes.write(f'Command:  {config["Launch Function"]["Function"]}\n')
-
+    jsonRes.close()
 
     allFoundCrisprs = 0
     allCrisprs = 0
@@ -241,17 +252,18 @@ def active():
 
     # цикл с 411 строки
 
-    jsonRes.write('...')
+    # jsonRes.write('...')
 
     analyzedSequences = f'{outDir}\\analyzedSequences'
 
-    jsonRes.write(']\n')
-    jsonRes.write('}\n')
+    # jsonRes.write(']\n')
+    # jsonRes.write('}\n')
 
     if json.loads(parametrs['launchCasFinder'].lower()) and json.loads(parametrs['writeFullReport'].lower()):
         fullReport(outDir)
 
     casFinder(outDir, parametrs['userfile'])
+    ending()
 
 
 def ending():
