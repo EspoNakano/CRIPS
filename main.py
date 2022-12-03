@@ -5,6 +5,10 @@
 # my ($value) = @_          || указание изначальной переменной в функции
 # s/A/O/g -> mAmbA => mOmbO __ /g (global find) /s (oneline value)
 from icecream import ic  # библиотека для отладки
+
+# 318 - 322 ?? -> словарь информации о повторе (шаблонизатор:?)
+# 325 - 344 для вузуализации CRISPRs and Cas genes (пока игнорить)
+
 # импорт библиотек
 from Bio import SeqIO
 from datetime import datetime
@@ -44,8 +48,6 @@ def casFinder(resDir, inFile):
         cas_db = f'{os.getcwd()}\\DEF-Typing'
     elif parametrs['definition'].lower() == ('subtyping' or 's'):
         cas_db = f'{os.getcwd()}\\DEF-SubTyping'
-
-    # строка 1212 ?
 
     with open(f'{outDir_tsv}\\Cas_REPORT.tsv', 'wt') as results:
         tsv_writer = csv.writer(results, delimiter='\t')
@@ -89,6 +91,10 @@ def add_spacer(str_position, str_len, i, spacer):
     pass  # ???
 
 
+def fullReport(direct):
+    pass
+
+
 def trans_struct_hach(position, structspacers):  # Использовать ctypes ?
     global Length, Pos1
     spacers = {}
@@ -116,6 +122,7 @@ def active():
                '-copyCSS': 'cssFile',
                '-soFile': 'so', '-so': 'so',
                '-minSeqSize': 'seqMinSize', '-mSS': 'seqMinSize',
+               # Detection of CRISPR arrays
                '-mismDRs': 'DRerrors', '-md': 'DRerrors',
                '-truncDR': 'DRtrunMism', '-t': 'DRtrunMism',
                '-minDR': 'M1', '-mr': 'M1',
@@ -125,9 +132,40 @@ def active():
                '-noMism': 'mismOne', '-n': 'mismOne',
                '-percSPmin': 'Sp1', '-pm': 'Sp1',
                '-percSPmax': 'Sp2', '-px': 'Sp2',
-               '-spSim': 'SpSim', '-s': 'SpSim',  # остановился на -DBcrispr
-
-               '-metagenome': 'metagenome', '-meta': 'metagenome'}
+               '-spSim': 'SpSim', '-s': 'SpSim',
+               '-DBcrispr': 'crisprdb', '-dbc': 'crisprdb',
+               '-repeats': 'repeats', '-rpts': 'repeats',
+               '-DIRrepeat': '', '-drpt': '',
+               '-flank': '', '-fl': '',
+               '-levelMin': '', '-lMin': '',
+               '-classifySmallArrays': '', '-classifySmall': '', '-cSA': '',
+               '-forceDetection': '', '-force': '',
+               '-fosterDRLength': '', '-fDRL': '',
+               '-fosterDRBegin': '', '-fDRB': '',
+               '-fosterDREnd': '', '-fDRE': '',
+               '-MatchingRepeats': '', '-Mrpts': '',
+               '-minNbSpacers': '', '-mNS': '',
+               '-betterDetectTrunc': '', '-bDT': '',
+               '-PercMismTrunc': '', '-PMT': '',
+               # Detection of Cas clusters
+               '-cas': '', '-cs': '',
+               '-ccvRep': 'writeFullReport', '-ccvr': 'writeFullReport',
+               '-vicinity': '', 'vi': '',
+               '-CASFinder': '', '-cf': '',
+               '-cpuMacSyFinder': '', '-cpuM': '',
+               '-rcfowce': '',
+               '-definition': '', '-def': '',
+               '-gffAnnot': '', '-gff': '',
+               '-proteome': '', '-faa': '',
+               '-cluster': '', '-ccc': '',
+               '-getSummaryCasfinder': '', '-gscf': '',
+               '-geneticCode': '', '-gcode': '',
+               '-metagenome': 'metagenome', '-meta': 'metagenome',
+               # [Use Prokka instead of Prodigal (default option)]
+               # Prokka (https://github.com/tseemann/prokka) must be installed in order to use following options
+               '-useProkka': '', '-prokka': '',
+               '-cpuProkka': '', '-cpuP': '',
+               '-ArchaCas': '', '-ac': ''}
     bool_options = ['keep', 'logOption', 'html']
 
     # коррекция первичных параметров согласно требованиям пользователя
@@ -162,11 +200,7 @@ def active():
     outDir_gff = f'{outDir}\\GFF'
     if not os.path.isdir(outDir_gff): os.mkdir(outDir_gff)
 
-    # 318 - 322 ??
-    # 325 - 344 для вузуализации CRISPRs and Cas genes (стоит удалить ?)
-    # 348 получение размера входного файла в байтах
-
-    # для логов
+    # для логов (ПОСМОТРЕТЬ LOGGING)
     if json.loads(parametrs['keep'].lower()):
         outDir_log = f'{outDir}\\Temporary File'
     if not os.path.isdir(outDir_log): os.mkdir(outDir_log)
@@ -182,7 +216,7 @@ def active():
         jsonRes.write(f'Date:  {start_time}  [dd-mm-yy | hh-mm-ss]\n')
         jsonRes.write('Version:  python\n')
         jsonRes.write(f'Command:  {config["Launch Function"]["Function"]}\n')
-    jsonRes.close()
+
 
     allFoundCrisprs = 0
     allCrisprs = 0
@@ -205,9 +239,23 @@ def active():
     #        smallArrays.write('text')
     #    smallArrays.close()
 
-    # цикл с 412 строки
+    # цикл с 411 строки
+
+    jsonRes.write('...')
+
+    analyzedSequences = f'{outDir}\\analyzedSequences'
+
+    jsonRes.write(']\n')
+    jsonRes.write('}\n')
+
+    if json.loads(parametrs['launchCasFinder'].lower()) and json.loads(parametrs['writeFullReport'].lower()):
+        fullReport(outDir)
 
     casFinder(outDir, parametrs['userfile'])
+
+
+def ending():
+    jsonRes.close()
 
 
 # подключение базовых настроек в INI файле
