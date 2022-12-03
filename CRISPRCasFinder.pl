@@ -342,7 +342,6 @@ if($html){
   print HTML "File name           : <font COLOR= \#FF0000> $userfile </font>\n";
   print HTML "File size (in bytes): $status[7]\n";
   print HTML "</pre>\n";
-
 }
 
 my @statusLOG = stat($userfile); # Get input file size in bytes
@@ -467,8 +466,7 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
   	my $indexname = $inputfile;
   	my @indexname = split (/\./,$indexname);
   	print STDERR "\nSequence number $inputfileCount..";
-  	#print STDERR "\n*** your results files will be in the $outdir-$inputfileCount directory ***\n"; 
-  
+
   	callmkvtree($inputfile,$indexname);
   	# DC - 05/2017 print 
   	if($quiet){}
@@ -482,12 +480,9 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
 
   	my ($vmatch_hour,$vmatch_min,$vmatch_sec) = Now();
   	# DC - set Vmatch options in function of parameters   ### replace -sort ia by -sort ida
-  	#print " $repeatsQuery exists ?\n";
   	if(-e $so){
-	  
 	  if(!$mismOne){
 	     if(-e $repeatsQuery){
-		#print " $repeatsQuery exists !!!!\n";
 		@vmatchoptions = ("-l", $M1, "-s", "leftseq", "-evalue", "1", "-absolute", "-nodist","-noevalue", "-noscore", "-noidentity", "-sort", "ia", "-q", "$repeatsQuery", "-best", 1000000, "-selfun", "$so", $M2);
 	     }
 	     else{
@@ -495,7 +490,6 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
 	     }
 	  }else{
 	     if(-e $repeatsQuery){
-		#print " $repeatsQuery exists !!!!\n";
 	  	@vmatchoptions = ("-l", $M1, "-e $mismOne -s", "leftseq", "-evalue", "1", "-absolute", "-nodist","-noevalue", "-noscore", "-noidentity", "-sort", "ia", "-q", "$repeatsQuery", "-best", 1000000, "-selfun", "$so", $M2);
 	     }
       	     else{
@@ -511,9 +505,7 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
 		}
         	exit EX_CONFIG;
   	}
-
   	push(@vmatchoptions,$indexname); # DC - replace 
-
 
   	push(@vmatchoptions, " > vmatch_result.txt");
 
@@ -530,7 +522,6 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
   	{
      		($nbrcris, $OneSpacerCris_nbr)=  write_clusters($RefSeq,@rep);
      
-
      		create_recap($RefSeq, $nbrcris, $OneSpacerCris_nbr,$ResultDir);
   	}
   	else{ create_recap($RefSeq, 0, 0,$ResultDir); }
@@ -688,7 +679,6 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
 #$sequenceVersion
   	$jsonLineRes .= "{\n\"Id\":\"".$RefSeq."\",\n\"Version\":\"".$sequenceVersion."\",\n\"Description\":\"".$seqDesc."\",\n\"AT\":".$globalAT.",\n\"Length\":".$seqLength.",\n\"Summary_CRISPR-Cas\":\"".$tempSumDataCcC."\",\n\"Crisprs\":".$catJSONcrispr.",\n\"Cas\":".$catJSONcas."\n},\n";
 
-
   	#put analyzed sequence in a folder named: "analyzedSequences"
   	my $analyzedSequences = $ResultDir."/analyzedSequences";  # Directory for FASTAs
   	mkdir $analyzedSequences unless -d $analyzedSequences;
@@ -704,6 +694,7 @@ $jsonLineRes .= "}\n";
 
 print JSONRES $jsonLineRes;
 close (JSONRES);
+
 # move JSONRES in ResultDir
 if(-e $jsonResult){
   makesystemcall("mv $jsonResult $ResultDir");
@@ -712,7 +703,6 @@ if(-e $jsonResult){
 if ($launchCasFinder){
 	if($writeFullReport){
 	  my $fullRep = fullReport($ResultDir);
-	  #print "CRISPR-CAS vicinity Report = $fullRep\n";
 	}
 }
 
@@ -721,7 +711,6 @@ if($dirRepeat){
     if($quiet){}
     else{ print "Orientations count file created: $orientationCountFile\n\n"; }
 }
-
 #copy files
 my $resCCSummary = $ResultDir."/CRISPR-Cas_summary.tsv";
 my $resCCSummaryX = $ResultDir."/CRISPR-Cas_summary.xls";
@@ -758,7 +747,7 @@ if(-d $analyzedSequences2){
 
 #create a directory Properties and move all sequenceProperties directories in one
 my $directoryProperties = $ResultDir."/CRISPRFinderProperties";  # Directory for Properties
-#mkdir $directoryProperties unless -d $directoryProperties; #before NV
+
 if($keep){
   if($useProkka){
   	if(! $quiet){print "Secondary folders/files (Prokka, CasFinder, rawFASTA, CRISPRFinderProperties) have been created\n";}
@@ -797,7 +786,6 @@ if($launchCasFinder){
 }
 
 ## Time - end
-#my ($end_hour,$end_min,$end_sec) = Now();
 my($end_year,$end_month,$end_day, $end_hour,$end_min,$end_sec) = Today_and_Now();
 ##
 
@@ -858,7 +846,6 @@ if($html){
   if(-d "$outdir-$inputfileCount"){  
   	`rm -Rf $outdir-$inputfileCount &>/dev/null`;
   }
-  #`mv $ResultDir/$outdir $ResultDir/$outdir-$inputfileCount`; #LK - removed by DC
 
   ## DC - $outdir will be moved to $ResultDir after
   `mv $ResultDir $ResultDirFinal`;#rmdir $outdir;
