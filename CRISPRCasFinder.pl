@@ -1339,26 +1339,14 @@ sub casFinder
 
     my ($macsyfinder_hour,$macsyfinder_min,$macsyfinder_sec) = Now();
     if ( (-d $casfinder) and (-d $casdb) and (-d $profiles) ) {
-	  #if($default){
 	    $macsyfinder = "macsyfinder -w $cpuMacSyFinder -d $casdb -p $profiles --sequence-db $proteome all --out-dir $casDir ";
-	    #$macsyfinder = "macsyfinder -w $cpuMacSyFinder -d $casdb -p $profiles --sequence-db $proteome all --out-dir $casDir "; 
 	    $macsyfinder .= $addToMacSy; # --multi-loci General-CAS
-	  #}
-	  #else{
-	    #$macsyfinder = "macsyfinder -w $cpuMacSyFinder -d $casdb -p $profiles --sequence-db $proteome all --out-dir $casDir "; #--multi-loci 'CAS*' --min-genes-required 'CAS*' 1";
-	  #}
     }
-    #elsif($default){
-        #$macsyfinder = "macsyfinder -w $cpuMacSyFinder --sequence-db $proteome all --out-dir $casDir"; #MacSyfinder without new definitions/profiles
-    #}
     else{  
     	$macsyfinder = "macsyfinder -w $cpuMacSyFinder --sequence-db $proteome all --out-dir $casDir"; #MacSyfinder without new definitions/profiles
     }
-    #print "$macsyfinder\n";
-    #print "METAGENOME = $metagenome ; ACTUAL VALUE = $actualMetaOptionValue\n\n\n";
     if($metagenome){ $macsyfinder .= " --db-type unordered"; } 
     elsif($actualMetaOptionValue == 0){ $macsyfinder .= " --db-type ordered_replicon"; }
-    #elsif($gembase){ $macsyfinder .= " --db-type gembase"; }
     if($quiet){ 
 	open (OUTMACSY, ">macsyfinderOutput") or die "open : $!";  # Open macsyfinderOutput (writing mode)
 	$macsyfinder .= " >> macsyfinderOutput";
@@ -1407,7 +1395,6 @@ sub casFinder
 	    if($logOption){
 		if($useProdigal){
 			print LOG "[$prokka_hour:$prokka_min:$prokka_sec] $prodigal\n";
-			#print "PRODIGAL command = $prodigal\n";
 		}
 		else{
 	    		print LOG "[$prokka_hour:$prokka_min:$prokka_sec] $prokka\n";
@@ -1632,9 +1619,6 @@ sub casFinder
 				        my $seqidCas = $seq->id; # ID of sequence
 				       	# DC - 11/2017 - get raw sequence of Cas
 				       	my $rawCASsequence = $dbSeq->seq($seqidCas, $hashGeneBegin{$seqName} => $hashGeneEnd{$seqName});#$dbSeq->seq($seqName); # Cas gene sequence
-					####
-					#my $rawCRISPRsequence = $dbSeq->seq($seqid, $start => $end);
-					####
 					my $len = 80;
 
 					my $formatted_seq = ">".$RefSeq."|".$seqName."|".$systemName."|".$matcher." ".$hashGeneBegin{$seqName}.",".$hashGeneEnd{$seqName}."\n";
@@ -1670,14 +1654,10 @@ sub casFinder
 			### Fill Cas Table with name of system (if $clusteringThreshold is set)
 			if($clusteringThreshold){
 				
-				#if($p->[$i]->{'name'} eq "General-CAS"){
 				$countGeneralCas++;
 				my $otherNameGeneralCas = $p->[$i]->{'name'}."_n".$countGeneralCas;
 				$hashCasBegin{$otherNameGeneralCas} = $beginCasCluster;
 	  			$hashCasEnd{$otherNameGeneralCas} = $endCasCluster;	
-				#}
-				#$hashCasBegin{$p->[$i]->{'name'}} = $beginCasCluster;
-	  			#$hashCasEnd{$p->[$i]->{'name'}} = $endCasCluster;
 				
 				push (@otherTabCas, $otherNameGeneralCas); #General-CAS
 			}
@@ -1713,16 +1693,10 @@ sub casFinder
 					}
 					###
 					if( (($tab[5]-$vicinity) <= $endCasCluster) and (($tab[5]-$vicinity) > $beginCasCluster) and $writeFullReport ){
-						#$_ .= "\t$p->[$i]->{'name'} [$beginCasCluster;$endCasCluster]\n";
-						#print TMP $_;
-						#print CRISPR "\t$p->[$i]->{'name'} [$beginCasCluster;$endCasCluster]\n";
 						print CAS "$tab[4]\t$tab[4] [$tab[5];$tab[6]]\t";
 						print CAS "$p->[$i]->{'name'} [$beginCasCluster;$endCasCluster]\n";
 					}
 					elsif ( (($tab[6]+$vicinity) >= $beginCasCluster) and (($tab[6]+$vicinity) < $endCasCluster) and $writeFullReport ){
-						#$_ .= "\t$p->[$i]->{'name'} [$beginCasCluster;$endCasCluster]\n";
-						#print TMP $_;
-						#print CRISPR "\t$p->[$i]->{'name'} [$beginCasCluster;$endCasCluster]\n";
 						print CAS "$tab[4]\t$tab[4] [$tab[5];$tab[6]]\t";
 						print CAS "$p->[$i]->{'name'} [$beginCasCluster;$endCasCluster]\n";
 					} 
@@ -1750,7 +1724,6 @@ sub casFinder
 			close (CAS); # Close CAS file
 		}
 		close (CRISPR);
-		#close (TMP);
 		#makesystemcall("mv $resultsTmpCRISPRs $resultsCRISPRs"); # Move TMP file into CRISPR
 
 		##JSON Cas (note replacement of '}]' by '}')
@@ -1761,7 +1734,6 @@ sub casFinder
 
 		$jsonCAS .= $jsonLineCas;
 
-  		#close JSONCAS;
 		## End JSON Cas
 
 		### Generate clusters of CRISPR-Cas in function of threshold
@@ -2354,8 +2326,6 @@ sub reportToGff{
   my $DRstart=$start;
   
   # DC adding fasta file containing DRs 'DRLIST' (05/2017)
-  #my $drFile = $reportDR."_DR.fna"; # DC
-  #print "REPORT DR : $reportDR\n"; # DC
   my $idCrispr = pop(@tabIdCRISPR);
   my $drFile = $tabReport[0]."/".$tabReport[1]."/"."DRs_".$idCrispr; # DC
   
@@ -2369,8 +2339,7 @@ sub reportToGff{
 
     # DRs surround spacers.
 
-    # DC - 05/2017    
-    #$gffLine.=join("\t",$seqid,$source,"CRISPRdr",$DRstart,($DRstart+$tag{DR_length}-1),$score,$strand,$phase,"Parent=$featureId")."\n";
+    # DC - 05/2017
     $gffLine.=join("\t",$seqid,$source,"CRISPRdr",$DRstart,($DRstart+$tag{DR_length}-1),$score,$strand,$phase,"sequence=$sequenceDR;Parent=$featureId;ID=DR_$DRstart")."\n"; # DC - 05/2017 Adding DR sequence
     
     # DC - 05/2017 - print DRs into fasta file
