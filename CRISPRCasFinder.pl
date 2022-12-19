@@ -200,27 +200,31 @@ GetOptions (
 };
 
 # If a positional argument remains, it's the input file
-my $n_rem_arguments = @ARGV;
+# ======================READY======================
+my $n_rem_arguments = @ARGV;		
 if ($n_rem_arguments) {
     $userfile = $ARGV[0];
 }
 
 # Check that input file was given and exists
+# ======================READY======================
 if (!$userfile) {
     print STDERR "Error: input file not given.\n";
     exit EX_USAGE;
 }
+# ======================READY======================
 if (not -e $userfile) {
     print STDERR "Error: file $userfile not found. Please check that the file exists or enter a correct file name.\n";
     exit EX_NOINPUT;
 }
 
+# ======================READY======================
 print "################################################################\n";
 print "# --> Welcome to $0 (version $version) \n";
 print "################################################################\n\n\n";
 
 ## Control dependencies
-
+# ======================READY ???======================
 my $vmatchProg = isProgInstalled("vmatch2");
 if($vmatchProg){
   print "vmatch2 is...............OK \n";
@@ -230,7 +234,7 @@ else
   print "vmatch2 is not installed, please install it and try again.\n";
   exit EX_CONFIG;
 }
-
+# ======================READY ???======================
 my $mkvtreeProg = isProgInstalled("mkvtree2");
 if($mkvtreeProg){
   print "mkvtree2 is...............OK \n";
@@ -240,7 +244,7 @@ else
   print "mkvtree2 (Vmatch dependency) is not installed, please install it and try again.\n";
   exit EX_CONFIG;
 }
-
+# ======================READY ???======================
 my $vsubseqselectProg = isProgInstalled("vsubseqselect2");
 if($vsubseqselectProg){
   print "vsubseqselect2 is...............OK \n";
@@ -250,7 +254,7 @@ else
   print "vsubseqselect2 (Vmatch dependency) is not installed, please install it and try again.\n";
   exit EX_CONFIG;
 }
-#--
+# ======================READY ???======================
 my $fuzznuc = isProgInstalled("fuzznuc");
 if($fuzznuc){
   print "fuzznuc (from emboss) is...............OK \n";
@@ -260,7 +264,7 @@ else
     print "fuzznuc (from emboss) is not installed, please install it and try again.\n";
     exit EX_CONFIG;
 }
-
+# ======================READY ???======================
 my $needle = isProgInstalled("needle");
 if($needle){
   print "needle (from emboss) is...............OK \n\n\n";
@@ -273,12 +277,15 @@ else
 
 
 ## Manage DRs
+# ======================READY======================
 $DRtrunMism = 100/$DRtrunMism;
 $DRerrors = $DRerrors/100;
 
 ## Time - Begin
+# ======================READY======================
 my($start_year,$start_month,$start_day, $start_hour,$start_min,$start_sec) = Today_and_Now();
 
+# ======================READY======================
 my $seqIO = Bio::SeqIO->new(-format=>'Fasta', -file=>$userfile);
 my $inputfileCount=0;
 my ($seq,$inputfile);
@@ -288,40 +295,45 @@ my $outdir = $outdir[0];
 $outdir .= "_".$start_day."_".$start_month."_".$start_year."_".$start_hour."_".$start_min."_".$start_sec;
 
 # DC - 11/05/2017 Retrieve date (localtime) and default repository
+# ======================READY======================
 my $ResultDir = "";
 
+# ======================READY======================
 if($outputDirName eq ""){
   $ResultDir = "Result_".$outdir;
 }
 else{
   $ResultDir = $outputDirName;
 }
-
+# ======================NOT NEED======================
 my $ResultDirFinal = $ResultDir;
 
 # LK
+# ======================NOT NEED======================
 if(-d $ResultDirFinal){
   die "Output directory $ResultDirFinal already exists. Remove the directory before continuing.\nSuggestion:\nrm -rf $ResultDirFinal/\n";
 }
 
 # $ResultDir now corresponds to the temporary result directory ($outdir)
+# ======================NOT NEED======================
 $ResultDir = $outdir;
 mkdir $ResultDir unless -d $ResultDir;
 
-
+# ======================READY======================
 mkdir $ResultDir."/CRISPRFinderProperties" unless -d $ResultDir."/CRISPRFinderProperties"; #NV
 
-
 #create a directory GFF and move all GFFs to this directory
+# ======================READY======================
 mkdir $ResultDir."/GFF" unless -d $ResultDir."/GFF";
 
+# ======================READY======================
 struct Rep => {
     Pos1  => '$',
     Length  => '$',
     DRseq => '$',
 };
 
-
+# ======================NOT READY======================
 my $htmlFile = "index.html"; # web page allowing a simple visualization of CRISPRs and Cas genes ($ResultDir/ removed)
 if($html){
   my @status = stat($userfile);
@@ -343,13 +355,15 @@ if($html){
   print HTML "File size (in bytes): $status[7]\n";
   print HTML "</pre>\n";
 }
-
+# ======================READY======================
 my @statusLOG = stat($userfile); # Get input file size in bytes
 
-# Two additional log files (logfile and logSequences) -DC 06/2017  
+# Two additional log files (logfile and logSequences) -DC 06/2017
+# ======================READY======================
 my $logfile = "logFile_".$start_day."_".$start_month."_".$start_year."_".$start_hour."_".$start_min."_".$start_sec.".txt"; # to write command lines
 my $logSeq = "logSequences_".$start_day."_".$start_month."_".$start_year."_".$start_hour."_".$start_min."_".$start_sec.".tsv"; # to write quick information on sequences
 
+# ======================READY======================
 if($logOption){
 	open (LOG, ">$logfile") or die "open : $!";
 	open (LOGSEQ, ">$logSeq") or die "open : $!";
@@ -357,6 +371,7 @@ if($logOption){
 }
 
 ## JSON file "result.json"
+# ======================READY======================
 my $jsonResult = "result.json"; # JSON result to get all info concerning CRISPR-Cas and sequences JSON files
 open (JSONRES, ">$jsonResult") or die "open : $!";
 print JSONRES "{\n";
@@ -365,24 +380,27 @@ my $dateJSON = $start_day."/".$start_month."/".$start_year."_".$start_hour.":".$
 my $cmdLine = "perl $0 @ARGV";
 my $jsonLineRes = "\"Date\":\"".$dateJSON."\",\n\"Version\":\"".$version."\",\n\"Command\":\"".$cmdLine."\",\n\"Sequences\":\n[";
 ##
-
+# ======================READY======================
 if($logOption){
-	print LOG "[$start_hour:$start_min:$start_sec] $cmdLine\n---> Results will be stored in $ResultDirFinal\n\n"; # the main command line and results path
+	print LOG "[$start_hour:$start_min:$start_sec] $cmdLine\n--->  $ResultDirFinal\n\n"; # the main command line and results path
 }
+# ======================READY======================
 if($quiet){
 }
 else{
 	print "[$start_hour:$start_min:$start_sec] ---> Results will be stored in $ResultDirFinal\n\n";
 }
-
+# ======================READY======================
 my $allFoundCrisprs = 0; #DC
 my $allCrisprs = 0;
 my $nbrAllCas = 0; # Total nbrCas
 
 #actualMetaOptionValue
+# ======================READY======================
 my $actualMetaOptionValue = $metagenome;
 
 #my header CCS to write title of CSS tsv file
+# ======================READY======================
 my $resultsCRISPRCasSummary1 = $ResultDir."/CRISPR-Cas_summary.tsv";
 my $headerCCS = "Sequence(s)\tCRISPR array(s)\tNb CRISPRs\tEvidence-levels\tCas cluster(s)\tNb Cas\tCas Types/Subtypes\n";
 open (RESULTCCSONE, ">$resultsCRISPRCasSummary1") or die "open : $!";  #Open $resultsCRISPRCasSummary1
@@ -390,6 +408,7 @@ print RESULTCCSONE $headerCCS;
 close(RESULTCCSONE);
 
 #my Header for CRISPR-Cas_clusters.tsv
+# ======================READY======================
 if($clusteringThreshold and $launchCasFinder){
   my $clusterResultsHead = $ResultDir."/CRISPR-Cas_clusters.tsv";
   my $headerCCC = "Sequence\tCluster Id\tNb CRISPRs\tNb Cas\tStart\tEnd\tDescription\n";
@@ -399,6 +418,7 @@ if($clusteringThreshold and $launchCasFinder){
 }
 
 #my Header for smallArraysReclassification.xls
+# ======================NOT READY======================
 if ($classifySmall){
   my $smallArrays = $ResultDir."/smallArraysReclassification.xls";
   open (SMALL, ">$smallArrays") or die "open : $!"; 
@@ -406,8 +426,10 @@ if ($classifySmall){
   close (SMALL);
 }
 
+# ======================NOT NEED======================
 my $sequenceVersion = 0;
 
+# ======================NOT READY======================
 while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
   
   $inputfileCount++;
@@ -676,6 +698,7 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
   	else{
 		$tempSumDataCcC = "NA";
   	}
+
 #$sequenceVersion
   	$jsonLineRes .= "{\n\"Id\":\"".$RefSeq."\",\n\"Version\":\"".$sequenceVersion."\",\n\"Description\":\"".$seqDesc."\",\n\"AT\":".$globalAT.",\n\"Length\":".$seqLength.",\n\"Summary_CRISPR-Cas\":\"".$tempSumDataCcC."\",\n\"Crisprs\":".$catJSONcrispr.",\n\"Cas\":".$catJSONcas."\n},\n";
 
@@ -688,18 +711,21 @@ while($seq = $seqIO->next_seq()){  # DC - replace 'next_seq' by 'next_seq()'
  } #NV end condition for mss option  
 } # end while (my $seq = $seqIO->next_seq)
 
+# ======================READY======================
 $jsonLineRes .= "]\n";
 $jsonLineRes =~ s/,\n]/\n]/; # change end of file to better fit JSON format
 $jsonLineRes .= "}\n";
 
+# ======================READY======================
 print JSONRES $jsonLineRes;
 close (JSONRES);
 
 # move JSONRES in ResultDir
+# ======================NOT NEED======================
 if(-e $jsonResult){
   makesystemcall("mv $jsonResult $ResultDir");
 }
-
+# ======================READY======================
 if ($launchCasFinder){
 	if($writeFullReport){
 	  my $fullRep = fullReport($ResultDir);
