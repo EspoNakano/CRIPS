@@ -6,6 +6,13 @@
 # s/A/O/g -> mAmbA => mOmbO __ /g (global find) /s (oneline value)
 from icecream import ic  # библиотека для отладки
 
+# горячие названия файлов в PERL
+# STDERR - принт ошибки в консоли
+# LOG - log.txt
+# JSONRES - jsonResult.json
+# RESULTCCSONE - CRISPR-Cas_summary.tsv
+# RESULTCCC - CRISPR-Cas_clusters.tsv
+
 # 318 - 322 ?? -> словарь информации о повторе (шаблонизатор:?)
 # 325 - 344 для вузуализации CRISPRs and Cas genes (пока игнорить)
 
@@ -61,7 +68,7 @@ def casFinder(resDir, inFile):
 
     write_text(f'{outDir_tsv}\\Cas_REPORT.tsv', 'w', '')
     write_text(f'{outDir_tsv}\\CRISPR-Cas_Systems_vicinity.tsv', 'w', '')
-    write_text(f'{outDir_tsv}\\CRISPR-Cas_summary.tsv', 'w', '')
+    write_text(f'{outDir_tsv}\\CRISPR-Cas_summary.tsv', 'a', '')
 
     # 1208 - 1209
 
@@ -161,9 +168,12 @@ def compare_clusters(el2, el1):  # функция прмменяется тол�
 
 
 def active():
-    global outDir_tsv
-    global outDir_log
+    global outDir_tsv, outDir_log
+
+    # Входная функция
     function = config["Launch Function"]["Function"].split(' ')
+
+    # Подготовка словаря функций
     options = {'-in': 'userfile', '-i': 'userfile',
                '-out': 'outputDirName', '-outdir': 'outputDirName',
                '-keepAll': 'keep', '-keep': 'keep',
@@ -171,6 +181,7 @@ def active():
                '-HTML': 'html', '-html': 'html',
                '-copyCSS': 'cssFile',
                '-soFile': 'so', '-so': 'so',
+               '-quite': 'quiet', '-q': 'quiet',
                '-minSeqSize': 'seqMinSize', '-mSS': 'seqMinSize',
                # Detection of CRISPR arrays
                '-mismDRs': 'DRerrors', '-md': 'DRerrors',
@@ -218,7 +229,7 @@ def active():
                '-ArchaCas': 'kingdom', '-ac': 'kingdom'}
     bool_options = ['keep', 'logOption', 'html', 'kingdom']
 
-    # коррекция первичных параметров согласно требованиям пользователя
+    # Коррекция первичных параметров согласно требованиям пользователя
     for item in function:
         if item in options:
             if options[item] not in bool_options:
@@ -228,8 +239,9 @@ def active():
                     parametrs[options[item]] = 'Archaea'
                 else:
                     parametrs[options[item]] = '1'
-    if not isProgInstalled(parametrs['userfile']):
-        sys.exit(f'Not found {parametrs["userfile"]}')
+        else:
+            if item[0] == '-':
+                sys.exit(f'Error argument {item}')
     parametrs['outputDirName'] = function[function.index("-out") + 1] if '-out' in function else 'Result'
     if json.loads(parametrs['force'].lower()):
         parametrs['M1'] = parametrs['fosteredDRLength']
@@ -239,6 +251,10 @@ def active():
         parametrs['useProdigal'] = '1'
     if parametrs['kingdom'] == 'Archaea':
         parametrs['launchCasFinder'] = '1'
+
+    # Проверка наличия входного файла
+    if not isProgInstalled(parametrs['userfile']):
+        sys.exit(f'Not found {parametrs["userfile"]}')
 
     # коррекция DRs
     drTrunMism = 100 / float(parametrs['DRtrunMism'])
@@ -266,7 +282,7 @@ def active():
         outDir_log = f'{outDir}\\Temporary File'
     if not os.path.isdir(outDir_log): os.mkdir(outDir_log)
     if json.loads(parametrs['logOption'].lower()) and json.loads(parametrs['keep'].lower()):
-        with open(f'{outDir_log}\\log.txt', 'wt') as logfile:
+        with open(f'{outDir_log}\\log.txt', 'w') as logfile:
             lof_write = csv.writer(logfile, delimiter='\t')
             lof_write.writerow([parametrs["userfile"], f'SIZE: {os.path.getsize(parametrs["userfile"])} bytes'])
         logfile.close()
@@ -277,20 +293,27 @@ def active():
     write_text(f'{outDir}\\jsonResult.json', 'a', f'Command:  {config["Launch Function"]["Function"]}\n')
     write_text(f'{outDir}\\jsonResult.json', 'a', 'Sequences:\n[{')
 
+    if json.loads(parametrs['logOption'].lower()):
+        write_text(f'{outDir_log}\\log.txt', 'a',
+                   f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\tResults will be stored in {outDir}\n')
+
+    if not json.loads(parametrs['quiet'].lower()):
+        print(f'{outDir_log}\\log.txt', 'a',
+              f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\tResults will be stored in {outDir}\n')
+
+
     allFoundCrisprs = 0
     allCrisprs = 0
     nbrAllCas = 0
 
     actualMetaOptionValue = parametrs['metagenome']
 
-    with open(f'{outDir_tsv}\\CRISPR-Cas_summary.tsv', 'wt') as resultsCRISPRCasSummary:
-        resultsCRISPRCasSummary.write('text')
-    resultsCRISPRCasSummary.close()
-
+    # разобраться с этими принтами
+    write_text(f'{outDir_tsv}\\CRISPR-Cas_summary.tsv', 'w',
+               'Sequence(s)\tCRISPR array(s)\tNb CRISPRs\tEvidence-levels\tCas cluster(s)\tNb Cas\tCas Types/Subtypes\n')
     if json.loads(parametrs['clusteringThreshold'].lower()) and json.loads(parametrs['launchCasFinder'].lower()):
-        with open(f'{outDir_tsv}\\CRISPR-Cas_clusters.tsv', 'wt') as clusterResultsHead:
-            clusterResultsHead.write('text')
-        clusterResultsHead.close()
+        write_text(f'{outDir_tsv}\\CRISPR-Cas_clusters.tsv', 'w',
+                   'Sequence\tCluster Id\tNb CRISPRs\tNb Cas\tStart\tEnd\tDescription\n')
 
     # подвязать pandas к созданию XLS
     # if json.loads(parametrs['classifySmall'].lower()):
@@ -298,7 +321,7 @@ def active():
     #        smallArrays.write('text')
     #    smallArrays.close()
 
-    # цикл с 411 строки | работает с BIO
+    # цикл 433-712 | работает с BIO
     casFinder(outDir, parametrs['userfile'])
     # 679 - 702
     analyzedSequences = f'{outDir}\\analyzedSequences'
@@ -308,7 +331,7 @@ def active():
     if json.loads(parametrs['launchCasFinder'].lower()) and json.loads(parametrs['writeFullReport'].lower()):
         fullReport(outDir)
 
-    # 709 - 860
+    # 735 - 885
 
 
 # подключение базовых настроек в INI файле
