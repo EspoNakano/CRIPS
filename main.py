@@ -30,6 +30,16 @@ def isProgInstalled(program):
             return os.path.join(root, program)
 
 
+def write_text(file, key, text):
+    with open(file, key) as write_file:
+        write_file.write(text)
+    write_file.close()
+
+
+def makeHTML(gff, casFile, resDir, refSeq, seqDesc, seqLen, globalAT, nbrcris, OneSpacerCris_nbr):
+    pass  # заглушка ввиду открытия файла в функции
+
+
 def casFinder(resDir, inFile):
     if json.loads(parametrs['useProkka'].lower()):
         repProkka = f'{resDir}\\prokka_'
@@ -49,22 +59,62 @@ def casFinder(resDir, inFile):
     elif parametrs['definition'].lower() == ('subtyping' or 's'):
         cas_db = f'{os.getcwd()}\\DEF-SubTyping'
 
-    with open(f'{outDir_tsv}\\Cas_REPORT.tsv', 'wt') as results:
-        tsv_writer = csv.writer(results, delimiter='\t')
-        tsv_writer.writerow(['...', '...'])
-    results.close()
-    with open(f'{outDir_tsv}\\CRISPR-Cas_Systems_vicinity.tsv', 'wt') as allCas:
-        tsv_writer = csv.writer(allCas, delimiter='\t')
-        tsv_writer.writerow(['...', '...'])
-    allCas.close()
-    with open(f'{outDir_tsv}\\CRISPR-Cas_summary.tsv', 'wt') as resultsCRISPRCasSummary:
-        tsv_writer = csv.writer(resultsCRISPRCasSummary, delimiter='\t')
-        tsv_writer.writerow(['...', '...'])
-    resultsCRISPRCasSummary.close()
+    write_text(f'{outDir_tsv}\\Cas_REPORT.tsv', 'w', '')
+    write_text(f'{outDir_tsv}\\CRISPR-Cas_Systems_vicinity.tsv', 'w', '')
+    write_text(f'{outDir_tsv}\\CRISPR-Cas_summary.tsv', 'w', '')
 
+    # 1208 - 1209
 
-def makeHTML(gff, casFile, resDir, refSeq, seqDesc, seqLen, globalAT, nbrcris, OneSpacerCris_nbr):
-    pass  # заглушка ввиду открытия файла в функции
+    tabCCScas = []
+    hashCountCas = {}
+
+    tabCRISPRCasClusters = []
+    hashCasBegin = {}
+    hashCasEnd = {}
+    hashCrisprBegin = {}
+    hashCrisprEnd = {}
+
+    hashCrisprDRcons = {}
+    limitSide = 3000
+    matchingCasType = 'CAS-TypeII'
+
+    otherTabCas = []
+    otherTabCrispr = []
+
+    write_text(f'{outDir_tsv}\\CRISPR-Cas_clusters.tsv', 'w', '')
+
+    # ловушка исключений
+
+    # JSON Parse
+
+    if json.loads(parametrs['useProkka'].lower()):
+        if isProgInstalled('prokka'):
+            print(f'_____{item} is found_____')
+        else:  # строка 1242-1253
+            if json.loads(parametrs['logOption'].lower()):
+                write_text(f'{outDir_log}\\log.txt', 'a',
+                           f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\tprokka is not installed\n')
+                write_text(f'{outDir_log}\\log.txt', 'a',
+                           f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\tPlease install it by following the documentation provided here: https://github.com/tseemann/prokka  OR  http://www.vicbioinformatics.com/software.prokka.shtml\n')
+                write_text(f'{outDir_log}\\log.txt', 'a',
+                           f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\tOtherwise, please retry without Cas option (-cas)\n')
+                launchCasFinder = 0
+                # next ?
+    elif json.loads(parametrs['useProdigal'].lower()):
+        if isProgInstalled('prodigal'):
+            print(f'_____{item} is found_____')
+        else:  # строка 1242-1253
+            if json.loads(parametrs['logOption'].lower()):
+                write_text(f'{outDir_log}\\log.txt', 'a',
+                           f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\tprodigal is not installed\n')
+                write_text(f'{outDir_log}\\log.txt', 'a',
+                           f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\tInstall it by following the documentation provided here: https://github.com/hyattpd/Prodigal\n')
+                write_text(f'{outDir_log}\\log.txt', 'a',
+                           f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\tOtherwise, please retry without Cas option (-cas)\n')
+                launchCasFinder = 0
+                # next ?
+
+    # STOP 1294
 
 
 def foundInCRISPRdb(seq, start, end):
@@ -112,7 +162,7 @@ def compare_clusters(el2, el1):  # функция прмменяется тол�
 
 def active():
     global outDir_tsv
-    # проверка параметров запуска | to_do
+    global outDir_log
     function = config["Launch Function"]["Function"].split(' ')
     options = {'-in': 'userfile', '-i': 'userfile',
                '-out': 'outputDirName', '-outdir': 'outputDirName',
@@ -222,12 +272,10 @@ def active():
         logfile.close()
 
     # JSON file 'result'
-    with open(f'{outDir}\\jsonResult.json', 'wt') as jsonRes:
-        jsonRes.write('{\n')
-        jsonRes.write(f'Date:  {start_time}  [dd-mm-yy | hh-mm-ss]\n')
-        jsonRes.write('Version:  python\n')
-        jsonRes.write(f'Command:  {config["Launch Function"]["Function"]}\n')
-    jsonRes.close()
+    write_text(f'{outDir}\\jsonResult.json', 'w', '{\n')
+    write_text(f'{outDir}\\jsonResult.json', 'a', f'Date:  {start_time}  [dd-mm-yy | hh-mm-ss]\nVersion:  python\n')
+    write_text(f'{outDir}\\jsonResult.json', 'a', f'Command:  {config["Launch Function"]["Function"]}\n')
+    write_text(f'{outDir}\\jsonResult.json', 'a', 'Sequences:\n[{')
 
     allFoundCrisprs = 0
     allCrisprs = 0
@@ -250,24 +298,17 @@ def active():
     #        smallArrays.write('text')
     #    smallArrays.close()
 
-    # цикл с 411 строки
-
-    # jsonRes.write('...')
-
+    # цикл с 411 строки | работает с BIO
+    casFinder(outDir, parametrs['userfile'])
+    # 679 - 702
     analyzedSequences = f'{outDir}\\analyzedSequences'
-
-    # jsonRes.write(']\n')
-    # jsonRes.write('}\n')
+    write_text(f'{outDir}\\jsonResult.json', 'a', ']\n')
+    write_text(f'{outDir}\\jsonResult.json', 'a', '}\n')
 
     if json.loads(parametrs['launchCasFinder'].lower()) and json.loads(parametrs['writeFullReport'].lower()):
         fullReport(outDir)
 
-    casFinder(outDir, parametrs['userfile'])
-    ending()
-
-
-def ending():
-    jsonRes.close()
+    # 709 - 860
 
 
 # подключение базовых настроек в INI файле
