@@ -1341,7 +1341,6 @@ sub casFinder
     if($metagenome){ $options .= "--metagenome "; }
     my $prokka = "prokka $options";
     $prokka .= "--cpus $cpuProkka --kingdom $kingdom --gcode $genCode --outdir $repProkka --prefix $RefSeq $inputfile"; # Prokka
-    #print "$prokka\n";
 
     # Call Prodigal instead of Prokka (to be faster)
     # create repository if ($useProdigal)
@@ -1446,12 +1445,10 @@ sub casFinder
 	}
 
 	$cdsCheck = 0; #CasFinder will not be launched if no CDS have been detected ; $launchCasFinder has been replaced by $cdsCheck
-	#next;
     }
     else{
 	$cdsCheck = 1;
     }
-    #End of Addition
 
     if (-e $gff and $cdsCheck){   # If GFF is created (Prokka is done) + addition of $cdsCheck
 	if($logOption){
@@ -1546,15 +1543,11 @@ sub casFinder
 		### JSON Cas file For Cas systems
 		my $jsonLineCas = "";
   		
-		#open(JSONCAS,">",$ResultDir."/".$RefSeq."_cas.json") or die("Could not open the JSON file $RefSeq _cas.json because $!\n");
-  		#print JSONCAS "[";
  		$jsonCAS = "[";
 		
-		#my $countSys = 1; # to count Cas systems in JSON file
 		my $countGeneralCas = 0;
 
 		for (my $i = 0; $i < $sizeTable; $i++) {
-			#print "############################################\n";
 			if(! $quiet){
             		print "### System: $p->[$i]->{'name'} ($p->[$i]->{'id'})\n";
             		print "#SequenceID\tCas-type/subtype\tGene status\tSystem\tType\tBegin\tEnd\tStrand\tOther_information\n";
