@@ -224,7 +224,6 @@ print "# --> Welcome to $0 (version $version) \n";
 print "################################################################\n\n\n";
 
 ## Control dependencies
-# ======================READY ???======================
 my $vmatchProg = isProgInstalled("vmatch2");
 if($vmatchProg){
   print "vmatch2 is...............OK \n";
@@ -234,7 +233,6 @@ else
   print "vmatch2 is not installed, please install it and try again.\n";
   exit EX_CONFIG;
 }
-# ======================READY ???======================
 my $mkvtreeProg = isProgInstalled("mkvtree2");
 if($mkvtreeProg){
   print "mkvtree2 is...............OK \n";
@@ -244,7 +242,6 @@ else
   print "mkvtree2 (Vmatch dependency) is not installed, please install it and try again.\n";
   exit EX_CONFIG;
 }
-# ======================READY ???======================
 my $vsubseqselectProg = isProgInstalled("vsubseqselect2");
 if($vsubseqselectProg){
   print "vsubseqselect2 is...............OK \n";
@@ -254,7 +251,6 @@ else
   print "vsubseqselect2 (Vmatch dependency) is not installed, please install it and try again.\n";
   exit EX_CONFIG;
 }
-# ======================READY ???======================
 my $fuzznuc = isProgInstalled("fuzznuc");
 if($fuzznuc){
   print "fuzznuc (from emboss) is...............OK \n";
@@ -264,7 +260,6 @@ else
     print "fuzznuc (from emboss) is not installed, please install it and try again.\n";
     exit EX_CONFIG;
 }
-# ======================READY ???======================
 my $needle = isProgInstalled("needle");
 if($needle){
   print "needle (from emboss) is...............OK \n\n\n";
@@ -418,7 +413,7 @@ if($clusteringThreshold and $launchCasFinder){
 }
 
 #my Header for smallArraysReclassification.xls
-# ======================NOT READY======================
+# ======================NOT WORK======================
 if ($classifySmall){
   my $smallArrays = $ResultDir."/smallArraysReclassification.xls";
   open (SMALL, ">$smallArrays") or die "open : $!"; 
@@ -3212,17 +3207,30 @@ sub atpercent
 }
 
 #------------------------------------------------------------------------------
-sub average{
-        my($data) = @_;
-        if (not @$data) {
-                die("Empty array\n");
-        }
-        my $total = 0;
-        foreach (@$data) {
-                $total += $_;
-        }
-        my $average = $total / @$data;
-        return $average;
+sub isProgInstalled {
+ 
+	my $program = shift;
+ 	my @PATH=split(":","$ENV{'PATH'}");     #Get users Path
+	my $found = 0;
+	foreach my $path (@PATH) 
+	{
+   	  if (-x "$path/$program") 
+   	  {
+   		  $found= 1;
+   		  last;
+    	  }
+	}
+	
+	if ( $program =~ /^muscle/ )
+	{
+        	unless ($found) {
+                	print "\nThe program $program cannot be found on your system\n";
+			print "Have you installed it? Your PATH variable contains: $ENV{'PATH'}\n\n";
+			print "\nPlease install $program\n";
+			exit EX_CONFIG;
+		}
+ 	}	
+     return $found;
 }
 
 #------------------------------------------------------------------------------
@@ -3318,8 +3326,6 @@ sub entropy
   foreach my $line (@lines) {
 	chomp $line;
 	my @words = split /[^a-zA-Z]+/, $line;
-	#Replace to treat Fasta sequence
-	#Retrieve each letter by column
 	if ($line !~ />/)
 	{
 		$seqLength=length($line);
@@ -3869,14 +3875,6 @@ sub write_clusters{
    	my $c=0;  # counter of the DRs consensus
    	my $TotDRerr=0;my $TotDRerr_best=0;
 
-	## DC - 09/05/2017
-	## Current repository AND Modifications chdir
-	#my $currentRepositoryDC = getcwd(); #DC
-	#print "CURRENT REP: $currentRepositoryDC\n"; #DC
-	#chdir(".."); #DC
-	#chdir(".."); #DC
-
-
    	while($c <= $#DR_cand_occ)
    	{
 		my $score;
@@ -3916,8 +3914,6 @@ sub write_clusters{
 		push @fuzznucoptions, "-auto";
 		
 		makesystemcall("fuzznuc " . join(' ',@fuzznucoptions)); #DC
-		#my $testCrisprFile = "Test_".$crisprfile;
-		#makesystemcall("cp $crisprfile $testCrisprFile ");
 		my ($hour,$min,$sec) = Now();
 
 		if($logOption){
@@ -3929,12 +3925,10 @@ sub write_clusters{
 			#compare the crispr analysis based on the possible DRs
 			($score,$TotDRerr) = compute_Crispr_score($crisprfile,length($DR_cand_occ[$c]));
 			if($score <= $bestscore){$bestscore = $score; $bestindex = $c;$TotDRerr_best=$TotDRerr;}
-			#print "Score = $score , Total DR err = $TotDRerr\n\n";
 		}
 		else
 		{
 			($bestscore,$TotDRerr_best) = compute_Crispr_score($crisprfile,length($DR_cand_occ[0]));
-			#print "Score = $bestscore , Total DR err = $TotDRerr_best\n\n";
 		}
 		$c++;
    	} # boucle while
@@ -3965,8 +3959,6 @@ sub write_clusters{
    	{
 			my $Crispr_file = fill_in_crisprfile($simDRs,$RefSeq,$ResultDir, $nbrcris, $CrisprBeg, $CrisprEnd,$DR, $nbspacers, "spacers".$indexname,$RefFalsSpacers, %$RefSpacersH);
 
-			#if($Crispr_file eq "ND") {$crisOK = 0;} # DC
-
 			my @FalsSpacers = @$RefFalsSpacers;
 			if($#FalsSpacers != -1){$modf=$#FalsSpacers;}
 			if($nbspacers <= 1){$OneSpacerCris_nbr ++;} # DC replaced '$nbspacers <= 1 || $simDRs == 0' by '$nbspacers <= 3' or '$nbspacers <= 2'
@@ -3980,20 +3972,13 @@ sub write_clusters{
 				print LOG "\n[$hour:$min:$sec] Nb spacers = $nbspacers , similarity DRs = $simDRs , Hypotheticals = $OneSpacerCris_nbr .\n";
 			}
 
-
-			if($modf != -1)
-			{
-				#DC - 09/05/2017
-				#print "CHDIR located in Write Clusters : Path = $ResultDir / $RefSeq \n"; # DC
-				# DC - 07/2017 - DANGEROUS MODIFICATION
+			if($modf != -1){
 				($hour,$min,$sec) = Now(); # DC - 07/2017
-				#$actual_path = getcwd();
 				if($logOption){
 					#print LOG "\n[$hour:$min:$sec] Actual path directory before CRISPR modification: $actual_path ...\n"; # DC - 07/2017
 					#print "\n[$hour:$min:$sec] Actual path directory before CRISPR modification: $actual_path ...\n";
 				}
 
-		 		#chdir($ResultDir."/".$RefSeq); #
 				chdir($ResultDir."/".$RefSeq); # Replace chdir($ResultDir."/".$RefSeq."/") by chdir($RefSeq."/")
 
 			# DC - 07/2017 - End of DANGEROUS MODIFICATION
@@ -4015,7 +4000,6 @@ sub write_clusters{
 			 		 	while($s<=$crisprs_nbr)
 			 		 	{
 							#DC - 05/2017 - replace $inputfile by $inputfileTmp (in the whole 'while' loop)
-				     			#$inputfile = "$RefSeq"."_Crispr_".$s; # DC
 							my $inputfileTmp = "$RefSeq"."_Crispr_".$s; # DC
 				     			if(-e $inputfileTmp)
 				     			{
@@ -4030,19 +4014,11 @@ sub write_clusters{
 			 		}
 	 	   		$modf--;
 				}
-			  #chdir($actual_path_after_fill_in); # DC - 07/2017 - IMPORTANT addition
-			  #chdir($actual_path);
-			  #if($logOption){
-			  #	print LOG "\n[$hour:$min:$sec] Actual path directory after CRISPR modification: $actual_path ...\n"; # DC - 07/2017
-			  #	print "\n[$hour:$min:$sec] Actual path directory after CRISPR modification: $actual_path ...\n";
-			  #}
-
 			}
 			$modf = -1;
 		
 			if($logOption){
 				print LOG "\n[$hour:$min:$sec] Actual path directory after CRISPR modification: $actual_path ...\n"; # DC - 07/2017
-				#print "\n[$hour:$min:$sec] Actual path directory after CRISPR modification: $actual_path ...\n";
 			}
 
 			chdir($actual_path_after_fill_in); # DC - 07/2017 - IMPORTANT addition DC removed chdir($actual_path);
@@ -4069,10 +4045,8 @@ sub modify_files
   }
 
   # Modification DC - 05/05/2017
-  #my $dir = $ResultDir."/".$RefSeq."/"; #DC - 07/2017
   
   
-  #print "ACTUAL PATH: $actual_pathDC\n"; #DC 
   my $dir = $ResultDir."/".$RefSeq."/"; # 05/2017  addition of "$ResultDir."/"."
 
   chdir($dir);
@@ -4109,7 +4083,6 @@ my ($nbsp1,$nbsp2);
 # ----------file1-----------------------
 $l1 = 20;
 $l2 = $line ;
-#print "rank = $rank inputfile : $inputfile\n-------------\n";
 $id = $rank;
 $Spfile_new = "Spacers_test_".$id;
 $CrisprBeg = $begPos;
@@ -4127,7 +4100,6 @@ if($nbsp1>=1){
 	$crisprs_nbr=create_file($file_new, $file_old,$l1,$l2,$id,$CrisprBeg,$CrisprEnd,$nbsp1,$modf,1,$crisprs_nbr,@divi);
 
 	# DC - 05/05/2017
-	#print " 1rst Calling create_spFile, DIR = $dir , ResultDir = $ResultDir\n";
 	if($logOption){
   		print LOG "[$hour:$min:$sec] arguments of create_spFile : $dir,$ResultDir,$RefSeq,$Spfile_new, $Spfile_old, 0, $nbsp1\n";	
 	}
@@ -4317,11 +4289,6 @@ sub create_spFile{
 	print LOG "[$hour:$min:$sec] New spacer file: $Spfile_new \n"; #DC
 	print LOG "[$hour:$min:$sec] Previous number of spacers: $sp_prev \n"; #DC
 	print LOG "[$hour:$min:$sec] Number of spacers: $nbsp \n"; #DC
-
-	#print "[$hour:$min:$sec] Old spacer file: $Spfile_old \n"; #DC
-	#print "[$hour:$min:$sec] New spacer file: $Spfile_new \n"; #DC
-	#print "[$hour:$min:$sec] Previous number of spacers: $sp_prev \n"; #DC
-	#print "[$hour:$min:$sec] Number of spacers: $nbsp \n"; #DC
  }
 
  my $File_Content = "";
@@ -4464,15 +4431,9 @@ sub fill_in_crisprfile
   my $dir = $directory."/".$RefSeq;
   if(-e "$dir"){}else{mkdir($dir);}
 
-  #if(($nbspacers > 1) && ($simDRs ==1)) # DC replaced '$nbspacers >= 2' by '$nbspacers > 3' AND '(($nbspacers > 3) && ($simDRs ==1))' replaced by ($nbspacers > 3) 
-
   #if($nbspacers >= 1)
   #{ # the replaced '> 3' by '>=3' then by '>=2' then by '>2'
   	$Crispr_file = "$dir/$RefSeq"."_Crispr_".$id;
-  #}
-  #else
-  #{
-  #	$Crispr_file = "$dir/$RefSeq"."_PossibleCrispr_".$id;
   #}
   $nbspacers ++;
   $File_Content  = "########################################\n";
@@ -4566,11 +4527,7 @@ sub compute_Crispr_score
   my(@lines, @temp, $penal, $TotERR,$nb);
   my $troncated = 0;  
   $TotERR =0; $nb=0;
- 
-  #my %testHash = (); # DC test
-  #my $fileTest = "/home/davidcouvin/Applications/CRISPRCasFinder/HASH_repeats.txt"; # DC test
 
-#print "<br>";
   open(FD, $crisprfile)  or die "Error in opening the input file : $crisprfile!";
   @lines=<FD>;
   close(FD);
@@ -4890,7 +4847,6 @@ sub makesystemcall
     print STDERR "failure: \"$argstring\", errorcode $?\n";
     exit 1;
   }
-  #print STDERR "# $argstring\n"; #skip verbose mode
 }
 
 sub callmkvtree
@@ -4905,7 +4861,6 @@ sub callmkvtree
     if($logOption){
     	print LOG "[$hour:$min:$sec] mkvtree2 -db $inputfile -dna -pl -lcp -suf -tis -ois -bwt -bck -sti1\n"; # DC replaced mkvtree by mkvtree2
     }
-
   }
 }
 
