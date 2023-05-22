@@ -769,7 +769,7 @@ def callmkvtree(inputfile, indexname):
 
 
 def makesystemcall(arg_string) -> None:
-    ic(os.getcwd())
+    # ic(os.getcwd())
     args = arg_string.split(' ')
     retcode = subprocess.run(args=args)
     if retcode.returncode != 0:
