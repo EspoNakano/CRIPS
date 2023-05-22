@@ -17,19 +17,22 @@ from icecream import ic  # библиотека для отладки
 # 325 - 344 для вузуализации CRISPRs and Cas genes (пока игнорить)
 
 # импорт библиотек
-from Bio import SeqIO
-from datetime import datetime
 import re
 import os
 import csv
 import sys
 import json
 import math
+import shlex
 import subprocess
 import pandas as pd
 import configparser
-from pathlib import Path
 import Bio.Data.CodonTable
+
+from Bio import SeqIO
+from pathlib import Path
+from io import BufferedReader
+from datetime import datetime
 
 
 def isProgInstalled(program):
@@ -765,11 +768,11 @@ def callmkvtree(inputfile, indexname):
                        f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\t{system_command}\n')
 
 
-def makesystemcall(arg_string: str) -> None:
+def makesystemcall(arg_string) -> None:
     ic(os.getcwd())
     args = arg_string.split(' ')
-    retcode = subprocess.call(args)
-    if retcode != 0:
+    retcode = subprocess.run(args=args)
+    if retcode.returncode != 0:
         print(f"failure: \"{arg_string}\", error code {retcode}", file=sys.stderr)
         sys.exit(1)
 
@@ -1077,28 +1080,27 @@ def active():
                 if json.loads(parametrs['mismOne'].lower()):
                     if parametrs['repeatsQuery'] != '':   # os.path.isfile(parametrs['repeatsQuery'])
                         print('1')
-                        vmatchoptions = ("-l", parametrs["M1"], "-s", "leftseq", "-evalue", '1', "-absolute", "-nodist",
-                                         "-noevalue", "-noscore", "-noidentity", "-sort", "ia", "-q",
-                                         parametrs["repeatsQuery"], "-best", 1000000, "-selfun", parametrs["so"],
-                                         parametrs["M2"])
+                        vmatchoptions = f'-l {parametrs["M1"]} -s leftseq -evalue {1} -absolute -nodist' \
+                                        f'-noevalue -noscore -noidentity -sort ida -q {parametrs["repeatsQuery"]}' \
+                                        f'-best {1000000} -selfun {parametrs["so"]} {parametrs["M2"]}'
                     else:
                         print('2')
-                        vmatchoptions = ("-l", parametrs["M1"], parametrs["S1"], parametrs["S2"], "-s", "leftseq",
-                                         "-evalue", '1', "-absolute", "-nodist", "-noevalue", "-noscore", "-noidentity",
-                                         "-sort", "ia", "-best", 1000000, "-selfun", parametrs["so"], parametrs["M2"])
+                        vmatchoptions = f'-l {parametrs["M1"]} {parametrs["S1"]} {parametrs["S2"]} -s leftseq -evalue' \
+                                        f' {1} -absolute -nodist -noevalue -noscore -noidentity -sort ida -best' \
+                                        f' {1000000} -selfun {parametrs["so"]} {parametrs["M2"]}'
                 else:
                     print('3')
                     if parametrs['repeatsQuery'] != '':
-                        vmatchoptions = ("-l", parametrs["M1"], f'-e {parametrs["mismOne"]} -s', "leftseq", "-evalue",
-                                         '1', "-absolute", "-nodist", "-noevalue", "-noscore", "-noidentity", "-sort",
-                                         "ia", "-q", parametrs["repeatsQuery"], "-best", 1000000, "-selfun",
-                                         parametrs["so"], parametrs["M2"])
+                        vmatchoptions = f'-l {parametrs["M1"]} -e {parametrs["mismOne"]} -s leftseq -evalue {1}' \
+                                        f' -absolute -nodist -noevalue -noscore -noidentity -sort ida -q' \
+                                        f' {parametrs["repeatsQuery"]} -best {1000000} -selfun {parametrs["so"]}' \
+                                        f' {parametrs["M2"]}'
                     else:
                         print('4')
-                        vmatchoptions = ("-l", parametrs["M1"], parametrs["S1"], parametrs["S2"],
-                                         f'-e {parametrs["mismOne"]} -s', "leftseq", "-evalue", '1', "-absolute",
-                                         "-nodist", "-noevalue", "-noscore", "-noidentity", "-sort", "ia", "-best",
-                                         1000000, "-selfun", parametrs["so"], parametrs["M2"])
+                        vmatchoptions = f'-l {parametrs["M1"]} {parametrs["S1"]} {parametrs["S2"]} -e' \
+                                        f' {parametrs["mismOne"]} -s leftseq -evalue {1} -absolute -nodist' \
+                                        f' -noevalue -noscore -noidentity -sort ida -best {1000000} -selfun' \
+                                        f' {parametrs["so"]}, {parametrs["M2"]}'
             else:
                 print(f'The shared object file ({parametrs["so"]}) must be available in your current directory. '
                       f'Otherwise, you must use option -soFile (or -so)! \n\n')
@@ -1107,18 +1109,16 @@ def active():
                                f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\tThe shared object file '
                                f'({parametrs["so"]}) must be available in your current directory. '
                                f'Otherwise, you must use option -soFile (or -so)! \n')
-            vmatchoptions += (inputfile, f'> {outDir_tsv}/vmatch_result.txt')
-            write_text(f'{outDir_tsv}/vmatch_result.txt', 'w', '')
+            vmatchoptions += f' {inputfile} > {outDir_tsv}/vmatch_result.txt'
 
             if json.loads(parametrs['logOption'].lower()):
                 write_text(f'{outDir_log}/log.txt', 'a',
-                           f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\tvmatch2 '
-                           f'{" ".join(str(x) for x in vmatchoptions)}\n')
+                           f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\tvmatch2 {vmatchoptions}\n')
             # =======================================================================================
             # =======================================================================================
             print('Контрольная точка открыта')
             # =======================================================================================
-            makesystemcall('vmatch2 ' + ' '.join(str(x) for x in vmatchoptions))
+            makesystemcall(f'vmatch2 {vmatchoptions}')
             # =======================================================================================
             print('Контрольная точка закрыта')
             # =======================================================================================
