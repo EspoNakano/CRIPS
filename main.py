@@ -51,18 +51,86 @@ def isProgInstalled(program):
     return found
 
 
+def atpercent(string):  # calculate AT%
+    return 0 if len(string) == 0 else sum([1 if n in 'AT' else 0 for n in string]) / len(string) * 100
+
+
+def callmkvtree(inputfile, indexname):
+    if not checkdbfile(inputfile, f"{indexname}.prj"):
+        system_command = f"mkvtree2 -db {inputfile} -dna -pl -lcp -suf -tis -ois -bwt -bck -sti1"
+        makesystemcall(system_command)
+        if json.loads(parametrs['logOption'].lower()):
+            write_text(f'{outDir_log}/log.txt', 'a',
+                       f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\t{system_command}\n')
+
+
+def checkdbfile(inputfile, prjfile):
+    dbfile = ''
+    if os.path.exists(prjfile):
+        try:
+            with open(prjfile, "r") as PRJFILEPTR:
+                for line in PRJFILEPTR:
+                    match = re.search(r'^dbfile=(\S+) (\d+)', line)
+                    if match:
+                        if dbfile == '':
+                            dbfile = match.group(1)
+                            dbfilesize = int(match.group(2))
+                            if dbfile == inputfile:
+                                try:
+                                    size = os.path.getsize(dbfile)
+                                    if size == dbfilesize:
+                                        return 1
+                                except OSError:
+                                    pass
+            return 0
+        except IOError:
+            return 0
+    else:
+        return 0
+
+
+def makesystemcall(arg_string) -> None:
+    # ic(os.getcwd())
+    args = arg_string.split(' ')
+    retcode = subprocess.run(args=args)
+    if retcode.returncode != 0:
+        print(f"failure: \"{arg_string}\", error code {retcode}", file=sys.stderr)
+        sys.exit(1)
+
+
+def trans_data(file):
+    elem_nbr = 0
+    repetitions = []
+    with open(file) as fd:
+        for l in fd:
+            if l.strip() == "":
+                continue
+            line = l.strip()
+            line = line.replace(">", "> ")
+            temp = line.split()
+            if temp[0].startswith(">"):
+                rep = Rep()
+                rep.Length = temp[1]
+                rep.Pos1 = temp[2]
+                repetitions.append(rep)
+            else:
+                repetitions[elem_nbr].DRseq = temp[0]
+                elem_nbr += 1
+    fd.close()
+    if json.loads(parametrs['logOption'].lower()):
+        write_text(f'{outDir_log}/log.txt', 'a',
+                   f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\t'
+                   f'Getting results from vmatch and transform vmatch output file...\n')
+    return repetitions
+
+
 def write_text(file, key, text):
     with open(file, key) as write_file:
         write_file.write(text)
     write_file.close()
 
 
-def extractsequence(*seqencesdefinition):
-    count = 0
-    seqfile = ""
-    number = 0
-    subselectoptions = []
-    res = []
+def extractsequence(seqencesdefinition):  # *seqencesdefinition
     for count in range(0, len(seqencesdefinition), 2):
         if seqencesdefinition[count] - 500 > 0:
             seqencesdefinition[count] -= 500
@@ -74,15 +142,10 @@ def extractsequence(*seqencesdefinition):
             seqencesdefinition[count + 1] += 500
         number = (count + 2) / 2
         seqfile = f'seq_v{number}'
-
         subselectoptions = ["-range", seqencesdefinition[count], seqencesdefinition[count + 1], inputfile, ">", seqfile]
         makesystemcall("vsubseqselect2 " + " ".join(subselectoptions))
     res = [*seqencesdefinition]
     return res
-
-
-def makeHTML(gff, casFile, resDir, refSeq, seqDesc, seqLen, globalAT, nbrcris, OneSpacerCris_nbr):
-    pass  # заглушка ввиду открытия файла в функции
 
 
 def casFinder(ResultDir, inputfile, seqDesc, RefSeq, nbrcris, kingdom, casfinder_opt):
@@ -267,22 +330,99 @@ def check_DR(DR, DR_cand):
     return stop
 
 
-def write_clusters(RefSeq, rep):
-    tabseq = find_clusters(rep)
+# def write_clusters(RefSeq, rep):
+#     tabseq = find_clusters(rep)
+#
+#     if json.loads(parametrs['logOption'].lower()):
+#         write_text(f'{outDir_log}/log.txt', 'a',
+#                    f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\tFind CRISPRs candidates and check DRs...\n')
+#
+#     count, seqbeg, seqend, i, j, DR, DRocc, nbrcris, DRlength = 0, 0, 0, 0, 0, None, None, 0, 0
+#     i = 0
+#     j = 0
+#     nbrcris = 0
+#     OneSpacerCris_nbr = 0
+#     modf = -1
+#     modifcode = []
+#
+#     tabseq = extractsequence(tabseq)
 
+
+def compute_Crispr_score(crisprfile, DRlength):
+    score = 0
+    lines = []
+    temp = []
+    penal = 0
+    TotERR = 0
+    nb = 0
+    troncated = 0
+
+    with open(crisprfile, 'r') as fd:
+        lines = fd.readlines()
+
+    count = 19
+    if len(lines) <= 5:
+        score = 100000
+
+    for count in range(12, len(lines) - 1):
+        nb += 1
+        if lines[count].startswith('#'):
+            continue
+        if lines[count].isspace():
+            continue
+        lines[count] = lines[count].strip()
+        if lines[count].startswith('Start'):
+            continue
+        temp = lines[count].split()
+
+        if json.loads(parametrs['force'].lower()):
+            if temp[-1].startswith('G'):
+                score -= 2
+            if len(temp[-1]) >= 30:
+                score -= 2
+            if temp[-1].endswith('AA'):
+                score -= 2
+
+        if temp[-2] != '.':
+            TotERR += int(temp[-2])
+            penal = 1 + int(temp[-2]) / DRlength
+            score += penal
+            if count == 19:
+                troncated = penal
+            if count == len(lines) - 4:
+                if penal > troncated:
+                    troncated = penal
+    score -= troncated
+    TotERR /= (nb * DRlength)
+    return score, TotERR
+
+
+def find_the_crispr(index_name, DR, count, seq_beg, seq_end, crispr_file):
+    DR_length = len(DR)
+    sim_DRs, ref_fals_spacers, spacers = definespacers(DR_length, crispr_file, index_name)
+    Fals_spacers = ref_fals_spacers
+    if len(Fals_spacers) >= 0:
+        for h in range(len(Fals_spacers)):
+            Fals_spacers[h] += seq_beg
+    spacers_H = trans_struct_hach(seq_beg, spacers)
     if json.loads(parametrs['logOption'].lower()):
         write_text(f'{outDir_log}/log.txt', 'a',
-                   f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\tFind CRISPRs candidates and check DRs...\n')
-
-    count, seqbeg, seqend, i, j, DR, DRocc, nbrcris, DRlength = 0, 0, 0, 0, 0, None, None, 0, 0
-    i = 0
-    j = 0
-    nbrcris = 0
-    OneSpacerCris_nbr = 0
-    modf = -1
-    modifcode = []
-
-    tabseq = extractsequence(tabseq)
+                   f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\tCheck short CRISPRs arrays and check spacers '
+                   f'alignment using Muscle....\n')
+    good_crispr = 0
+    o = len(spacers) - 1
+    if min_nb_spacers <= 0:
+        min_nb_spacers = 1
+    if len(spacers) >= (min_nb_spacers - 1):
+        if len(spacers) == 0:
+            good_crispr = check_short_crispr(DR, f"spacers{index_name}")
+        else:
+            good_crispr = checkspacersAlignMuscle(f"spacers{index_name}")
+        if good_crispr:
+            Cris_beg = seq_beg + spacers[0].pos1 - DR_length
+            Cris_end = seq_beg + spacers[-1].pos1 + spacers[-1].length + DR_length - 1
+    r = len(Fals_spacers) - 1
+    return good_crispr, sim_DRs, Cris_beg, Cris_end, spacers_H, len(spacers), Fals_spacers
 
 
 def write_clusters(RefSeq, *rep):
@@ -454,6 +594,98 @@ def foundInCRISPRdb(seq, start, end):
     pass  # заглушка ввиду открытия файла в функции
 
 
+def modify_files(inputfile, ResultDir, RefSeq, rank, crisprs_nbr, HYPCris_nbr, modf):
+    actual_pathDC = os.getcwd() # DC
+    if json.loads(parametrs['logOption'].lower()):
+        write_text(f'{outDir_log}/log.txt', 'a', f'\n{datetime.now().strftime("%H:%M:%S")}\t Modify CRISPRs files '
+                                                 f'generated ({inputfile})...........\nActual path: $actual_pathDC\n')
+    dir = os.path.join(ResultDir, RefSeq)
+    os.chdir(dir)
+
+    with open(inputfile) as f:
+        lines = f.readlines()
+
+    newCrisNbr = crisprs_nbr
+    temp = lines[15].split(":")
+    temp2 = temp[1].split()
+    begPos = temp2[1]
+    endPos = temp[2]
+    temp = lines[16].split(":")
+    temp2 = temp[2].split()
+    DRlength = temp2[1]
+    nb_spacers = temp[3]
+    j = 20 + 2 * int(nb_spacers)
+
+    if '#' in lines[j]:
+        pass
+    else:
+        temp = lines[j].split(":")
+        nb_div = temp[1].split()
+        if modf != -1:
+            divi = temp[2:]
+            divi.pop()
+            newCrisNbr += len(nb_div)
+        line = find_Sp_lines(j,inputfile,nb_div[0])
+        (file_new, file_old, l1, l2, id, CrisprBeg, CrisprEnd, nbspacers, Spfile_old, Spfile_new) = [None] * 10
+        file_old = inputfile
+        Spfile_old = f"Spacers_{rank}"
+    (nbsp1, nbsp2) = (None, None)
+
+    l1 = 20
+    l2 = line
+    id = rank
+    Spfile_new = "Spacers_test_" + str(id)
+    CrisprBeg = begPos
+    CrisprEnd = nb_div[0]
+    CrisprEnd = CrisprEnd + "\n"
+    nbsp1 = (l2 - l1) / 2
+
+    if nbsp1 >= 1:
+        file_new = inputfile + "test" + str(id)
+        crisprs_nbr = create_file(file_new, file_old, l1, l2, id, CrisprBeg, CrisprEnd, nbsp1, modf, 1, crisprs_nbr, divi)
+        create_spFile(dir, ResultDir, RefSeq, Spfile_new, Spfile_old, sp_prev, nbsp2)
+    else:
+        crisprs_nbr -= 1
+
+    rank = id
+    if nbsp1 >= 1 and nbsp2 >= 1:
+        for k in range(crisprs_nbr - 1, rank - 1, -1):
+            l = k + 1
+            if os.path.exists(f"{RefSeq}Crispr{k}"):
+                os.rename(f"{RefSeq}Crispr{k}", f"{RefSeq}Crispr{l}")
+                os.rename(f"Spacers_{k}", f"Spacers_{l}")
+    else:
+        for k in range(crisprs_nbr - 1, rank - 1, -1):
+            l = k - 1
+            if os.path.exists(f"{RefSeq}Crispr{k}"):
+                os.rename(f"{RefSeq}Crispr{k}", f"{RefSeq}Crispr{l}")
+                os.rename(f"Spacers_{k}", f"Spacers_{l}")
+    l = rank - 1
+
+    if nbsp2 >= 1:
+        if nbsp1 >= 1:
+            l = rank
+        os.unlink(f"{RefSeq}_Crispr_{rank}")
+        if os.path.exists(f"{inputfile}_test_{rank}"):
+            os.rename(f"{inputfile}_test_{rank}", f"{RefSeq}_Crispr_{l}")
+        # ___spacers files ----------
+        Spfile_new = f"Spacers_test_{rank}"
+        Spfile = f"Spacers_{l}"
+        os.rename(Spfile_new, Spfile)
+    l = rank - 1
+
+    if nbsp1 >= 1:
+        os.unlink(f"{RefSeq}_Crispr_{l}")
+        if os.path.exists(f"{inputfile}_test_{l}"):
+            os.rename(f"{inputfile}_test_{l}", f"{RefSeq}_Crispr_{l}")
+        # ___spacers files ----------
+        Spfile_new = f"Spacers_test_{l}"
+        Spfile = f"Spacers_{l}"
+        os.rename(Spfile_new, Spfile)
+
+    return rank, crisprs_nbr, HYPCris_nbr
+
+
 def repeatIDandNb(repeat):
     repeat = repeat.strip().replace(" ", "")
     file = "Repeat_List.csv"
@@ -483,10 +715,6 @@ def repeatIDandNb(repeat):
     return id, number, orientation
 
 
-def atpercent(string):  # calculate AT%
-    return 0 if len(string) == 0 else sum([1 if n in 'AT' else 0 for n in string]) / len(string) * 100
-
-
 def sequenceAlignmentMuscle(file):
     pass  # работа с файлом
 
@@ -503,7 +731,7 @@ def fullReport(direct):
     pass
 
 
-def sub_entropy(file):
+def entropy(file):
     with open(file) as f:
         lines = f.readlines()
 
@@ -734,49 +962,6 @@ def FindtheCrispr(indexname, DR, count, seqbeg, seqend, crisprfile):
     return goodcrispr, simDRs, crisBeg, crisEnd, spacersH, len(spacers), FalsSpacers
 
 
-def checkdbfile(inputfile, prjfile):
-    dbfile = ''
-    if os.path.exists(prjfile):
-        try:
-            with open(prjfile, "r") as PRJFILEPTR:
-                for line in PRJFILEPTR:
-                    match = re.search(r'^dbfile=(\S+) (\d+)', line)
-                    if match:
-                        if dbfile == '':
-                            dbfile = match.group(1)
-                            dbfilesize = int(match.group(2))
-                            if dbfile == inputfile:
-                                try:
-                                    size = os.path.getsize(dbfile)
-                                    if size == dbfilesize:
-                                        return 1
-                                except OSError:
-                                    pass
-            return 0
-        except IOError:
-            return 0
-    else:
-        return 0
-
-
-def callmkvtree(inputfile, indexname):
-    if not checkdbfile(inputfile, f"{indexname}.prj"):
-        system_command = f"mkvtree2 -db {inputfile} -dna -pl -lcp -suf -tis -ois -bwt -bck -sti1"
-        makesystemcall(system_command)
-        if json.loads(parametrs['logOption'].lower()):
-            write_text(f'{outDir_log}/log.txt', 'a',
-                       f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\t{system_command}\n')
-
-
-def makesystemcall(arg_string) -> None:
-    # ic(os.getcwd())
-    args = arg_string.split(' ')
-    retcode = subprocess.run(args=args)
-    if retcode.returncode != 0:
-        print(f"failure: \"{arg_string}\", error code {retcode}", file=sys.stderr)
-        sys.exit(1)
-
-
 def stdev(data):
     if len(data) == 1:
         return 0
@@ -786,32 +971,6 @@ def stdev(data):
         sqtotal += (average - i) ** 2
     std = (sqtotal / (len(data) - 1)) ** 0.5
     return std
-
-
-def trans_data(file):
-    elem_nbr = 0
-    repetitions = []
-    with open(file) as fd:
-        for l in fd:
-            if l.strip() == "":
-                continue
-            line = l.strip()
-            line = line.replace(">", "> ")
-            temp = line.split()
-            if temp[0].startswith(">"):
-                rep = Rep()
-                rep.Length = temp[1]
-                rep.Pos1 = temp[2]
-                repetitions.append(rep)
-            else:
-                repetitions[elem_nbr].DRseq = temp[0]
-                elem_nbr += 1
-    fd.close()
-    if json.loads(parametrs['logOption'].lower()):
-        write_text(f'{outDir_log}/log.txt', 'a',
-                   f'{datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}\t'
-                   f'Getting results from vmatch and transform vmatch output file...\n')
-    return repetitions
 
 
 def create_recap(RefSeq, nbrcris, OneSpacerCris_nbr, ResultDir):
