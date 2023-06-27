@@ -1124,7 +1124,7 @@ def active():
     SeqIO.read(parametrs["userfile"], "fasta")
     inputfileCount = 0
 
-    # создание папки с итогом
+    # создание папки с итогами
     outDir = f'{os.getcwd()}/{parametrs["outputDirName"]}'
     outDir_tsv = f'{outDir}/TSV'
     if not os.path.isdir(outDir):
