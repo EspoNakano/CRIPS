@@ -90,7 +90,6 @@ def checkdbfile(inputfile, prjfile):
 
 
 def makesystemcall(arg_string) -> None:
-    # ic(os.getcwd())
     args = arg_string.split(' ')
     retcode = subprocess.run(args=args)
     if retcode.returncode != 0:
@@ -397,7 +396,7 @@ def compute_Crispr_score(crisprfile, DRlength):
     return score, TotERR
 
 
-def find_the_crispr(index_name, DR, count, seq_beg, seq_end, crispr_file):
+def Find_theCrispr(index_name, DR, count, seq_beg, seq_end, crispr_file):
     DR_length = len(DR)
     sim_DRs, ref_fals_spacers, spacers = definespacers(DR_length, crispr_file, index_name)
     Fals_spacers = ref_fals_spacers
@@ -1006,8 +1005,7 @@ def create_recap(RefSeq, nbrcris, OneSpacerCris_nbr, ResultDir):
 
 
 def trim(string):
-    string = string.strip()
-    return string
+    return string.strip()
 
 
 def active():
@@ -1120,6 +1118,9 @@ def active():
     print(f'Launch Time: {datetime.now().strftime("%d-%m-%Y | %H:%M:%S")}')
 
     # запуск работы с BIO | to_do
+    if os.path.splitext(parametrs["userfile"])[-1] == '.fastq':
+        SeqIO.convert(parametrs["userfile"], "fastq", f'{os.path.splitext(parametrs["userfile"])[-2]}.fasta', "fasta")
+        parametrs["userfile"] = os.path.splitext(parametrs["userfile"])[-2] + '.fasta'
     SeqIO.read(parametrs["userfile"], "fasta")
     inputfileCount = 0
 

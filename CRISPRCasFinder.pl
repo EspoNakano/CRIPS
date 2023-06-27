@@ -4092,10 +4092,6 @@ $nbsp1 = ($l2 - $l1)/2;
 if($nbsp1>=1){
 	#if($nbsp1 >= 2){
 		$file_new = "$inputfile"."_test_".$id;
-	#}    # DC replaced ">=" by ">"..... then ">= 3" replaced by ">= 2"
-	#else{
-	#	$file_new = "$inputfile"."_test_possible_".$id;$HYPCris_nbr++;
-	#}
 	
 	$crisprs_nbr=create_file($file_new, $file_old,$l1,$l2,$id,$CrisprBeg,$CrisprEnd,$nbsp1,$modf,1,$crisprs_nbr,@divi);
 
@@ -4122,7 +4118,6 @@ $CrisprEnd = $endPos;
 my $sp_prev = $nbsp1+1;
 $nbsp2 = ($l2 - $l1)/2;
 if($nbsp2>=1){
-	#if($nbsp2 >= 2){ # DC replaced ">=" by ">"..... then ">= 3" replaced by ">= 2"
 		$file_new = "$inputfile"."_test_".$id;
 	#}   
 	#else{
@@ -4178,10 +4173,6 @@ if($nbsp2>=1){
 	if(-e "$inputfile"."_test_".$rank){
 		rename("$inputfile"."_test_".$rank,"$RefSeq"."_Crispr_".$l);
 	}
-	#else{
-	#	rename("$inputfile"."_test_possible_".$rank,"$RefSeq"."_PossibleCrispr_".$l);
-	#}
-
 	# ___spacers files ----------
  	$Spfile_new = "Spacers_test_".$rank; 
  	my $Spfile = "Spacers_".$l; 
@@ -4195,10 +4186,6 @@ if($nbsp1 >=1){
 	if(-e "$inputfile"."_test_".$l){
 		rename("$inputfile"."_test_".$l,"$RefSeq"."_Crispr_".$l);
 	}
-	#else{
-	#	rename("$inputfile"."_test_possible_".$l,"$RefSeq"."_PossibleCrispr_".$l);
-	#}
-
 	# ___spacers files ----------
 
 	$Spfile_new = "Spacers_test_".$l; 
@@ -4433,7 +4420,7 @@ sub fill_in_crisprfile
 
   #if($nbspacers >= 1)
   #{ # the replaced '> 3' by '>=3' then by '>=2' then by '>2'
-  	$Crispr_file = "$dir/$RefSeq"."_Crispr_".$id;
+  	$Crispr_file = "$dir/$RefSeq"."_Crispr_".$id;07.06.2023
   #}
   $nbspacers ++;
   $File_Content  = "########################################\n";
@@ -4542,11 +4529,8 @@ sub compute_Crispr_score
      next if $lines[$count] =~ /^Start/;
      @temp = split(/ +/, $lines[$count]);
 
-     #DC
-
      if($force){
 	
-	#print "\n******\nMismatch = $temp[$#temp-1] ; SEQ in function = $temp[$#temp]\n";
 	if($temp[$#temp] =~ /^G/){ $score = $score -2; } #DC code to modify score (when e.g. G is encountered at the beginning) 
 	if(length($temp[$#temp]) >= 30){ $score = $score -2; } #DC check DR size
 	if($temp[$#temp] =~ /AA.$/){ $score = $score -2; } #DC code to modify score (when e.g. AAN is encountered at the end)
