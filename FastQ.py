@@ -1,2 +1,0 @@
-from Bio import SeqIO
-
